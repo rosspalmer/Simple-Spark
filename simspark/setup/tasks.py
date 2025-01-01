@@ -125,7 +125,7 @@ class SetupEnvsScript(SetupTask):
 class SetupHiveMetastore(SetupTask):
 
     @staticmethod
-    def generate_hive_site_xml(env: SimpleEnvironment) -> str:
+    def generate_hive_site_xml(env: SimpleSparkEnvironment) -> str:
 
         config: JdbcConfig = env.config.metastore_config
 
@@ -159,7 +159,7 @@ class SetupHiveMetastore(SetupTask):
 
         return xml
 
-    def run(self, env: SimpleEnvironment):
+    def run(self, env: SimpleSparkEnvironment):
 
         config = env.config.metastore_config
         if config is None:
