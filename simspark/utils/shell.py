@@ -22,6 +22,6 @@ class ShellCommand:
 
     def run(self) -> int:
 
-        command_success = os.popen(self.command).close()
+        exit_status = os.popen(self.command).close()
 
-        return command_success
+        return exit_status

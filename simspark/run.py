@@ -7,11 +7,6 @@ from simspark.environment import SimpleSparkEnvironment
 from simspark.setup.build import SetupTaskBuilder
 
 
-def run(env: SimpleSparkEnvironment):
-
-    SetupTaskBuilder.run(env)
-
-
 if __name__ == "__main__":
 
     config_files: List[str] = sys.argv[1].split(',')
@@ -23,5 +18,5 @@ if __name__ == "__main__":
     config = SimpleSparkConfig.read(*config_files)
     env = SimpleSparkEnvironment(config, local_host)
 
-    run(env)
+    SetupTaskBuilder.run(env)
 
