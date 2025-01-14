@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simplespark"
+version = "0.1.0"
+authors = {
+  {name="Ross Palmer", email="rossbpalmer@gmail.com"}
+}
+description = "Spark environment manager and job orchestrator"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python :: 3"
+  "License :: OSI Approved :: Apache License"
+]
+
+[project.urls]
+Homepage="TODO"
