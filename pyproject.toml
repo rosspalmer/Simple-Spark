@@ -11,6 +11,10 @@ authors = [
 description = "Spark environment manager and job orchestrator"
 readme = "README.md"
 requires-python = ">=3.11"
+dependencies = [
+  "wget",
+  "typer"
+]
 
 [project.urls]
 Homepage="https://github.com/rosspalmer/Simple-Spark"
