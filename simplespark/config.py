@@ -1,6 +1,7 @@
 
 from dataclasses import dataclass, asdict
 import json
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -45,12 +46,12 @@ class SimpleSparkConfig:
     name: str
     simple_home: str
     profile_path: str
-    packages: dict[str, str]
+    packages: Dict[str, str]
     driver: ResourceConfig
     derby_path: str = None
     warehouse_path: str = None
     metastore_config: JdbcConfig = None
-    workers: list[ResourceConfig] = None
+    workers: List[ResourceConfig] = None
     executor_memory: str = None
     jdbc_drivers: dict[str, MavenJar] = None
 
@@ -72,6 +73,19 @@ class SimpleSparkConfig:
             write_file.write(as_string)
 
     @staticmethod
+    def get_field_deserializers() -> Dict[str, callable]:
+
+        # Write deserializers as lambdas to not require all fields to be defined
+        deserializers = {
+            'driver': lambda c: ResourceConfig(**c['driver']),
+            'workers': lambda c: list(map(lambda x: ResourceConfig(**x), c['workers'])),
+            'metastore_config': lambda c: JdbcConfig(**c['metastore_config']),
+            'jbc_drivers': lambda c: {k: MavenJar(**v) for k, v in c['jdbc_drivers'].items()}
+        }
+
+        return deserializers
+
+    @staticmethod
     def read(*json_path: str):
 
         config_dict = {}
@@ -80,14 +94,10 @@ class SimpleSparkConfig:
             with open(path, 'r') as read_file:
                 config_dict = config_dict | json.load(read_file)
 
-        if 'driver' in config_dict:
-            config_dict['driver'] = ResourceConfig(**config_dict['driver'])
-        if 'workers' in config_dict:
-            config_dict['workers'] = list(map(lambda x: ResourceConfig(**x), config_dict['workers']))
-        if 'metastore_config' in config_dict:
-            config_dict['metastore_config'] = JdbcConfig(**config_dict['metastore_config'])
-        if 'jdbc_drivers' in config_dict:
-            config_dict['jdbc_drivers'] = {k: MavenJar(**v) for k, v in config_dict['jdbc_drivers'].items()}
+        for field_name, deserializer in SimpleSparkConfig.get_field_deserializers().items():
+            if field_name in config_dict:
+                config_dict[field_name] = deserializer(config_dict)
+            config_dict[field_name] = deserializer(config_dict)
 
         return SimpleSparkConfig(**config_dict)
 

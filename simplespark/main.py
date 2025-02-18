@@ -3,7 +3,7 @@ import typer
 
 from simplespark.config import SimpleSparkConfig
 from simplespark.environment import SimpleSparkEnvironment
-from simplespark.setup.build import SetupTaskBuilder
+from simplespark.setup.build import SetupBuilder
 
 app = typer.Typer()
 
@@ -18,13 +18,9 @@ def setup(config_paths: str, local_host: str = ''):
     env = SimpleSparkEnvironment(config, local_host)
 
     print('Setup simplespark environment on hardware')
-    SetupTaskBuilder.run(env)
+    SetupBuilder.run(env)
 
 
 @app.command()
 def info(blah: str):
     print(f'TODO')
-
-
-if __name__ == '__main__':
-    app()

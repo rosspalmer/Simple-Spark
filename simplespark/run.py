@@ -4,7 +4,7 @@ from typing import List
 
 from simplespark.config import SimpleSparkConfig
 from simplespark.environment import SimpleSparkEnvironment
-from simplespark.setup.build import SetupTaskBuilder
+from simplespark.setup.build import SetupBuilder
 
 
 if __name__ == "__main__":
@@ -18,5 +18,5 @@ if __name__ == "__main__":
     config = SimpleSparkConfig.read(*config_files)
     env = SimpleSparkEnvironment(config, local_host)
 
-    SetupTaskBuilder.run(env)
+    SetupBuilder.run(env)
 

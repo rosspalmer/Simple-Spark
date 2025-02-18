@@ -6,7 +6,7 @@ from simplespark.environment import SimpleSparkEnvironment
 from simplespark.setup.tasks import *
 
 
-class SetupTaskBuilder:
+class SetupBuilder:
 
     @staticmethod
     def run(env: SimpleSparkEnvironment):
