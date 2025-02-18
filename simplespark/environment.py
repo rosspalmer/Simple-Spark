@@ -1,6 +1,6 @@
 
-from simspark.config import SimpleSparkConfig, ResourceConfig
-from simspark.utils import get_ip
+from simplespark.config import SimpleSparkConfig, ResourceConfig
+from simplespark.utils.network import get_host_ip
 
 
 class SimpleSparkEnvironment:
@@ -12,7 +12,7 @@ class SimpleSparkEnvironment:
 
         if local_host == '':
             print('Local host not set, detecting automatically')
-            local_host = get_ip()
+            local_host = get_host_ip()
             print(f'Local IP detected: {local_host}')
         self.local_host = local_host
 

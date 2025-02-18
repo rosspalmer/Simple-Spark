@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict
 
-from simspark.config import SimpleSparkConfig, ResourceConfig
+from simplespark.config import SimpleSparkConfig, ResourceConfig
 
 
 DEFAULT_VERSIONS = {

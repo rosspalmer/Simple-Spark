@@ -4,9 +4,9 @@ import tarfile
 
 from urllib.request import urlretrieve
 
-from simspark.config import ResourceConfig, JdbcConfig
-from simspark.environment import SimpleSparkEnvironment
-from simspark.utils.maven import MavenDownloader
+from simplespark.config import ResourceConfig, JdbcConfig
+from simplespark.environment import SimpleSparkEnvironment
+from simplespark.utils.maven import MavenDownloader
 
 
 class SetupTask(ABC):

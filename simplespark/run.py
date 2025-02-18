@@ -2,9 +2,9 @@
 import sys
 from typing import List
 
-from simspark.config import SimpleSparkConfig
-from simspark.environment import SimpleSparkEnvironment
-from simspark.setup.build import SetupTaskBuilder
+from simplespark.config import SimpleSparkConfig
+from simplespark.environment import SimpleSparkEnvironment
+from simplespark.setup.build import SetupTaskBuilder
 
 
 if __name__ == "__main__":

@@ -2,8 +2,8 @@ from pathlib import Path
 from pprint import pprint
 from shutil import rmtree
 
-from simspark.environment import SimpleSparkEnvironment
-from simspark.setup.tasks import *
+from simplespark.environment import SimpleSparkEnvironment
+from simplespark.setup.tasks import *
 
 
 class SetupTaskBuilder:

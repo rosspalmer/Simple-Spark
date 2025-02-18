@@ -1,7 +1,7 @@
 
 from urllib.request import urlretrieve
 
-from simspark.config import MavenJar
+from simplespark.config import MavenJar
 
 
 class MavenDownloader:
