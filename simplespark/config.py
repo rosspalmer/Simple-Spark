@@ -53,14 +53,18 @@ class SimpleSparkConfig:
     metastore_config: JdbcConfig = None
     workers: List[ResourceConfig] = None
     executor_memory: str = None
-    jdbc_drivers: dict[str, MavenJar] = None
+    jdbc_drivers: Dict[str, MavenJar] = None
 
     def __str__(self) -> str:
 
-        config_dict = asdict(self)
-        json_string = json.dumps(config_dict, indent=2)
+        config_json = self.get_as_json()
+        json_string = json.dumps(config_json, indent=2)
 
         return json_string
+
+    def get_as_json(self):
+        config_json = asdict(self)
+        return config_json
 
     def get_package_version(self, package_name: str) -> str:
         return self.packages[package_name]
@@ -102,7 +106,7 @@ class SimpleSparkConfig:
         return SimpleSparkConfig(**config_dict)
 
     @staticmethod
-    def generate_template_json() -> str:
+    def generate_template_json():
 
         template = SimpleSparkConfig(
             name='<SETUP-NAME>',
@@ -145,4 +149,6 @@ class SimpleSparkConfig:
             }
         )
 
-        return str(template)
+        template_json = template.get_as_json()
+
+        return template_json

@@ -1,3 +1,4 @@
+import json
 import sys
 import typer
 
@@ -22,5 +23,13 @@ def setup(config_paths: str, local_host: str = ''):
 
 
 @app.command()
-def info(blah: str):
+def info():
     print(f'TODO')
+
+
+@app.command()
+def template(write_path: str):
+
+    template_json = SimpleSparkConfig.generate_template_json()
+    with open(write_path, 'w') as f:
+        json.dump(template_json, f, indent=2)
