@@ -1,6 +1,5 @@
-from typing import Any, Callable, Dict
 
-from simplespark.config import SimpleSparkConfig, ResourceConfig, DriverConfig
+from simplespark.config import *
 
 DEFAULT_VERSIONS = {
     "java": "11.0.21+9",
@@ -25,7 +24,7 @@ class Templates:
         if 'name' not in kwargs:
             kwargs['name'] = '<SIMPLE-SPARK-ENV-NAME>'
         if 'simple_path' not in kwargs:
-            kwargs['simple_path'] = '<SIMPLE-SPARK-HOME>'
+            kwargs['simple_home'] = '<SIMPLE-SPARK-HOME-DIRECTORY>'
         if 'profile_path' not in kwargs:
             kwargs['profile_path'] = '<BASH-PROFILE-FILE>'
 
@@ -53,6 +52,7 @@ class Templates:
             name=name,
             simple_home=simple_home,
             profile_path=profile_path,
+            packages=packages,
             driver=driver
         )
 

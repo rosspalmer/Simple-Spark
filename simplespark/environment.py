@@ -1,5 +1,5 @@
 
-from simplespark.config import SimpleSparkConfig, ResourceConfig
+from simplespark.config import SimpleSparkConfig
 from simplespark.utils.network import get_host_ip
 
 
@@ -17,20 +17,6 @@ class SimpleSparkEnvironment:
         self.local_host = local_host
 
         self.is_driver = local_host == self.config.driver.host
-
-        def _get_resource_config() -> ResourceConfig:
-
-            if self.is_driver:
-                return self.config.driver
-
-            for worker in self.config.workers:
-                is_worker = local_host == worker.host
-                if is_worker:
-                    return worker
-
-            raise Exception(f'Not able to identify resource with host: {local_host}')
-
-        self.resource_config = _get_resource_config()
 
         self.package_urls: dict[str, str] = {
             "java": "https://github.com/adoptium/temurin11-binaries/releases/download"

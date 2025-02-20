@@ -4,7 +4,7 @@ import tarfile
 
 from urllib.request import urlretrieve
 
-from simplespark.config import ResourceConfig, JdbcConfig
+from simplespark.config import JdbcConfig, WorkerConfig
 from simplespark.environment import SimpleSparkEnvironment
 from simplespark.utils.maven import MavenDownloader
 
@@ -103,7 +103,7 @@ class SetupEnvsScript(SetupTask):
 
         print(f"Setup spark-env.sh bash script at {env.spark_env_sh_path()}")
 
-        worker_info: ResourceConfig | None = None
+        worker_info: WorkerConfig | None = None
         for worker_config in env.config.workers:
             if worker_config.host == env.local_host:
                 worker_info = worker_config

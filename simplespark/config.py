@@ -42,7 +42,7 @@ class JdbcConfig:
 
 
 @dataclass
-class MavenJar:
+class MavenConfig:
     group_id: str
     artifact_id: str
     version: str
@@ -60,7 +60,7 @@ class SimpleSparkConfig:
     metastore_config: JdbcConfig = None
     workers: List[WorkerConfig] = None
     executor_memory: str = None
-    jdbc_drivers: Dict[str, MavenJar] = None
+    jdbc_drivers: Dict[str, MavenConfig] = None
 
     def __str__(self) -> str:
 
@@ -88,10 +88,10 @@ class SimpleSparkConfig:
 
         # Write deserializers as lambdas to not require all fields to be defined
         deserializers = {
-            'driver': lambda c: ResourceConfig(**c['driver']),
-            'workers': lambda c: list(map(lambda x: ResourceConfig(**x), c['workers'])),
+            'driver': lambda c: DriverConfig(**c['driver']),
+            'workers': lambda c: list(map(lambda x: WorkerConfig(**x), c['workers'])),
             'metastore_config': lambda c: JdbcConfig(**c['metastore_config']),
-            'jbc_drivers': lambda c: {k: MavenJar(**v) for k, v in c['jdbc_drivers'].items()}
+            'jbc_drivers': lambda c: {k: MavenConfig(**v) for k, v in c['jdbc_drivers'].items()}
         }
 
         return deserializers
@@ -127,7 +127,7 @@ class SimpleSparkConfig:
                 'hadoop': '3.3.1',
                 'hive': '3.1.2'
             },
-            driver=ResourceConfig(
+            driver=DriverConfig(
                 host='<DRIVER-IP-ADDRESS>',
                 cores=4,
                 memory='8G'
@@ -143,7 +143,7 @@ class SimpleSparkConfig:
                 jdbc_driver='<JAVA-PATH-TO-CLASS>'
             ),
             workers=[
-                ResourceConfig(
+                WorkerConfig(
                     host='<WORKER-IP-ADDRESS>',
                     cores=4,
                     memory='8G',
@@ -152,7 +152,7 @@ class SimpleSparkConfig:
             ],
             executor_memory='8G',
             jdbc_drivers={
-                'postgres': MavenJar("org.postgresql", "postgresql", "42.7.4")
+                'postgres': MavenConfig("org.postgresql", "postgresql", "42.7.4")
             }
         )
 

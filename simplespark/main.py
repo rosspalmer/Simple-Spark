@@ -29,9 +29,9 @@ def info():
 
 
 @app.command()
-def template(template_type: str, write_path: str, **kwargs):
+def template(template_type: str, write_path: str):
 
-    template = Templates.generate(template_type, **kwargs)
+    template = Templates.generate(template_type)
     template_json = template.get_as_json()
 
     with open(write_path, 'w') as f:
