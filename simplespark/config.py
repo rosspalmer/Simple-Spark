@@ -5,7 +5,14 @@ from typing import Any, Dict, List
 
 
 @dataclass
-class ResourceConfig:
+class DriverConfig:
+    host: str
+    cores: int = None
+    memory: str = None
+
+
+@dataclass
+class WorkerConfig:
     host: str
     cores: int = None
     memory: str = None
@@ -47,11 +54,11 @@ class SimpleSparkConfig:
     simple_home: str
     profile_path: str
     packages: Dict[str, str]
-    driver: ResourceConfig
+    driver: DriverConfig
     derby_path: str = None
     warehouse_path: str = None
     metastore_config: JdbcConfig = None
-    workers: List[ResourceConfig] = None
+    workers: List[WorkerConfig] = None
     executor_memory: str = None
     jdbc_drivers: Dict[str, MavenJar] = None
 

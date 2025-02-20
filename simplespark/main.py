@@ -5,6 +5,7 @@ import typer
 from simplespark.config import SimpleSparkConfig
 from simplespark.environment import SimpleSparkEnvironment
 from simplespark.setup.build import SetupBuilder
+from simplespark.templates import Templates
 
 app = typer.Typer()
 
@@ -28,8 +29,10 @@ def info():
 
 
 @app.command()
-def template(write_path: str):
+def template(template_type: str, write_path: str, **kwargs):
 
-    template_json = SimpleSparkConfig.generate_template_json()
+    template = Templates.generate(template_type, **kwargs)
+    template_json = template.get_as_json()
+
     with open(write_path, 'w') as f:
         json.dump(template_json, f, indent=2)

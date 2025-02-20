@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict
 
-from simplespark.config import SimpleSparkConfig, ResourceConfig
-
+from simplespark.config import SimpleSparkConfig, ResourceConfig, DriverConfig
 
 DEFAULT_VERSIONS = {
     "java": "11.0.21+9",
@@ -21,41 +20,43 @@ DEFAULT_JDBC = {
 class Templates:
 
     @staticmethod
-    def generate(template_name: str, with_delta: bool, with_hadoop: bool = False, **kwargs):
+    def generate(template_type: str, **kwargs) -> SimpleSparkConfig:
 
-        name = kwargs['name']
-        simple_home = kwargs['simple_home']
-        profile_path = kwargs['profile_path']
+        if 'name' not in kwargs:
+            kwargs['name'] = '<SIMPLE-SPARK-ENV-NAME>'
+        if 'simple_path' not in kwargs:
+            kwargs['simple_path'] = '<SIMPLE-SPARK-HOME>'
+        if 'profile_path' not in kwargs:
+            kwargs['profile_path'] = '<BASH-PROFILE-FILE>'
 
-        packages = DEFAULT_VERSIONS.copy()
-        if not with_delta:
-            del packages['delta']
-        if not with_hadoop:
-            del packages['hadoop']
+        match template_type:
 
-        driver = kwargs['driver']
-
-        env = SimpleSparkConfig(
-            name, simple_home, profile_path, packages, driver
-        )
-
-        match template_name:
+            case "local":
+                return Templates.generate_local(**kwargs)
 
             case "standalone":
                 return Templates._generate_standalone(kwargs)
 
-            case "hive_metastore":
-                metastore_db = kwargs['metastore_db']
-                with_delta = kwargs['with_delta']
-                return Templates._generate_hive(metastore_db, with_delta)
+            case _:
+                raise Exception(f'Unknown template type: {template_type}')
 
-    def _update_kwargs(self, template_name: str, kwargs: dict[str, Any]) -> dict[str, Any]:
-        match template_name:
-            case "standalone":
-                return kwargs
-            case "hive_metastore":
-                return Templates._generate_hive_metastore(metastore_db, with_delta)
+    @staticmethod
+    def generate_local(name: str, simple_home: str, profile_path: str,
+                       with_delta: bool = False) -> SimpleSparkConfig:
 
+        packages = DEFAULT_VERSIONS.copy()
+        del packages['hadoop']
+
+        driver = DriverConfig('local')
+
+        config = SimpleSparkConfig(
+            name=name,
+            simple_home=simple_home,
+            profile_path=profile_path,
+            driver=driver
+        )
+
+        return config
 
     @staticmethod
     def _generate_standalone(kwargs: dict[str, Any]) -> SimpleSparkConfig:
@@ -97,3 +98,5 @@ class Templates:
         )
 
         return env
+
+
