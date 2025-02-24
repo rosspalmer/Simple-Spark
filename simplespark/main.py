@@ -29,6 +29,8 @@ def setup(config_paths: str, local_host: str = ''):
 @app.command()
 def template(template_type: str, write_path: str):
 
+    print(f'Create template type: {template_type} and write to path: {write_path}')
+
     template = Templates.generate(template_type)
     template_json = template.get_as_json()
 
