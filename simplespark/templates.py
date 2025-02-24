@@ -50,6 +50,7 @@ class Templates:
 
         config = SimpleSparkConfig(
             name=name,
+            setup_type='local',
             simple_home=simple_home,
             profile_path=profile_path,
             packages=packages,

@@ -51,6 +51,7 @@ class MavenConfig:
 @dataclass
 class SimpleSparkConfig:
     name: str
+    setup_type: str
     simple_home: str
     profile_path: str
     packages: Dict[str, str]
@@ -70,7 +71,17 @@ class SimpleSparkConfig:
         return json_string
 
     def get_as_json(self):
+
+        def remove_nulls(d: dict[str, Any]):
+            for k, v in d.copy().items():
+                if v is None:
+                    del d[k]
+                elif isinstance(v, dict):
+                    remove_nulls(v)
+
         config_json = asdict(self)
+        remove_nulls(config_json)
+
         return config_json
 
     def get_package_version(self, package_name: str) -> str:
@@ -102,13 +113,13 @@ class SimpleSparkConfig:
         config_dict = {}
 
         for path in json_path:
+            print(f'Reading {path}')
             with open(path, 'r') as read_file:
                 config_dict = config_dict | json.load(read_file)
 
         for field_name, deserializer in SimpleSparkConfig.get_field_deserializers().items():
             if field_name in config_dict:
                 config_dict[field_name] = deserializer(config_dict)
-            config_dict[field_name] = deserializer(config_dict)
 
         return SimpleSparkConfig(**config_dict)
 

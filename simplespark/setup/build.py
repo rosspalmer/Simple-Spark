@@ -30,17 +30,20 @@ class SetupBuilder:
             "spark": SetupJavaBin("spark", {
                 "SPARK_HOME": env.package_home_directory('spark'),
                 "PATH": "$PATH:$SPARK_HOME/bin"}),
-            "setup_driver": SetupDriverConfig(),
-            "setup_envs": SetupEnvsScript(),
+            "setup_driver": SetupDriverConfig()
         }
 
         optional_tasks: dict[str, SetupTask] = {
+            "setup_envs": SetupEnvsScript(),
             "setup_metastore": SetupHiveMetastore(),
             "setup_jars": SetupMavenJar(),
             "delta": SetupDelta()
         }
 
         include_optional_tasks: list[str] = []
+
+        if env.config.setup_type != 'local':
+            include_optional_tasks.append('setup_envs')
         if env.config.jdbc_drivers:
             include_optional_tasks.append('setup_jars')
         if env.config.metastore_config:
