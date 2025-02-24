@@ -1,4 +1,6 @@
 
+import os
+
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.utils.network import get_host_ip
 
@@ -37,6 +39,9 @@ class SimpleSparkEnvironment:
             "spark": "tgz"
         }
 
+    def activate_environment(self):
+        os.system(f"source {self.get_activate_source_file_path()}")
+
     def archive_name(self, package: str) -> str:
         return f"{self.package_names[package]}.{self.package_extensions[package]}"
 
@@ -60,6 +65,9 @@ class SimpleSparkEnvironment:
 
     def spark_env_sh_path(self) -> str:
         return f"{self.spark_home()}/conf/spark-env.sh"
+
+    def get_activate_source_file_path(self) -> str:
+        return f"{self.spark_home()}/activate/{self.config.name}.sh"
 
     def hive_config_path(self) -> str:
         return f"{self.spark_home()}/conf/hive-site.xml"
