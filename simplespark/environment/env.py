@@ -10,7 +10,10 @@ class SimpleSparkEnvironment:
     def __init__(self, config: SimpleSparkConfig, local_host: str = ''):
 
         self.config = config
-        self.libs_path = f"{config.simple_home}/libs"
+        self.simple_home = os.environ.get("SIMPLE_SPARK_HOME", None)
+
+        # FIXME replace with getter funciton
+        self.libs_path = f"{self.simple_home}/libs"
 
         if local_host == '':
             print('Local host not set, detecting automatically')
@@ -49,7 +52,7 @@ class SimpleSparkEnvironment:
         return f"{self.package_urls[package]}/{self.archive_name(package)}"
 
     def libs_directory(self) -> str:
-        return f"{self.config.simple_home}/libs"
+        return f"{self.simple_home}/libs"
 
     def package_home_directory(self, package: str) -> str:
         return f"{self.libs_directory()}/{self.package_names[package]}"

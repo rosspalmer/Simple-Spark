@@ -52,8 +52,6 @@ class MavenConfig:
 class SimpleSparkConfig:
     name: str
     setup_type: str
-    simple_home: str
-    profile_path: str
     packages: Dict[str, str]
     driver: DriverConfig
     derby_path: str = None
@@ -128,8 +126,7 @@ class SimpleSparkConfig:
 
         template = SimpleSparkConfig(
             name='<SETUP-NAME>',
-            simple_home='<SIMPLE-SPARK-DIR>',
-            profile_path='<PATH-TO-PROFILE-FILE>',
+            setup_type='<SETUP-TYPE>',
             packages={
                 'java': '11.0.21+9',
                 'scala': '2.12.18',

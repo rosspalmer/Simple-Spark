@@ -12,40 +12,25 @@ from simplespark.utils.maven import MavenDownloader
 class SetupTask(ABC):
 
     @abstractmethod
-    def run(self, env: SimpleSparkEnvironment):
+    def name(self) -> str:
         pass
 
-
-class SetupActivateScript(SetupTask):
-
+    @abstractmethod
     def run(self, env: SimpleSparkEnvironment):
-
-        new_env_variables = {
-            "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
-            "SCALA_HOME": env.package_home_directory('scala'),
-            "SPARK_HOME": env.package_home_directory('spark')
-        }
-        new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
-
-        with open(env.get_activate_script_path(), 'w') as f:
-
-            # Add `export` command for each new environment variable
-            for k, v in new_env_variables.items():
-                f.write(f"export {k}={v}")
-
-            # Add additions to PATH variable by merging into single `export` command
-            f.write(f"export $PATH=$PATH:{':'.join(new_path_additions)}")
-
+        pass
 
 class SetupJavaBin(SetupTask):
 
     def __init__(self, package: str):
         self.package = package
 
+    def name(self) -> str:
+        return f"setup-{self.package}-bin"
+
     def run(self, env: SimpleSparkEnvironment):
 
         download_url = env.full_package_url(self.package)
-        download_path = f"{env.config.simple_home}/{env.archive_name(self.package)}"
+        download_path = f"{env.simple_home}/{env.archive_name(self.package)}"
         lib_path = f"{env.libs_path}/{env.package_names[self.package]}"
 
         print(f"Downloading {self.package} binary from:")
@@ -59,7 +44,10 @@ class SetupJavaBin(SetupTask):
         os.remove(download_path)
 
 
-class SetupMavenJar(SetupTask):
+class DownloadJDBCDrivers(SetupTask):
+
+    def name(self) -> str:
+        return "download-jdbc-drivers"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -184,3 +172,24 @@ class SetupHiveMetastore(SetupTask):
 
         with open(env.hive_config_path(), "w") as hc:
             hc.write(self.generate_hive_site_xml(env))
+
+
+class SetupActivateScript(SetupTask):
+
+    def run(self, env: SimpleSparkEnvironment):
+
+        new_env_variables = {
+            "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
+            "SCALA_HOME": env.package_home_directory('scala'),
+            "SPARK_HOME": env.package_home_directory('spark')
+        }
+        new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
+
+        with open(env.get_activate_script_path(), 'w') as f:
+
+            # Add `export` command for each new environment variable
+            for k, v in new_env_variables.items():
+                f.write(f"export {k}={v}")
+
+            # Add additions to PATH variable by merging into single `export` command
+            f.write(f"export $PATH=$PATH:{':'.join(new_path_additions)}")

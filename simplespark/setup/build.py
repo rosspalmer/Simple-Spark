@@ -8,49 +8,54 @@ from simplespark.setup.tasks import *
 
 class SetupBuilder:
 
-    @staticmethod
-    def run(env: SimpleSparkEnvironment):
+    def __init__(self, env: SimpleSparkEnvironment):
 
-        print("Syncing environment:")
-        pprint(env.config.__dict__)
+        self.env = env
 
-        print(f"Simple-Delta HOME directory: {env.config.simple_home}")
-        simple_home = Path(env.config.simple_home)
+        self.OPTIONAL_TASKS: list[SetupTask] = [
+            SetupEnvsScript(),
+            SetupHiveMetastore(),
+            DownloadJDBCDrivers(),
+            SetupDelta()
+        ]
+        self._optional: dict[str, SetupTask] = {t.name(): t for t in self.OPTIONAL_TASKS}
+
+    def get_optional_task(self, task_name: str) -> SetupTask:
+        return self._optional[task_name]
+
+    def run(self):
+
+        print("Setup environment config:")
+        pprint(self.env.config.__dict__)
+
+        print(f"SimpleSpark HOME directory: {self.env.simple_home}")
+        simple_home = Path(self.env.simple_home)
         if not simple_home.exists():
             simple_home.mkdir()
-        rmtree(env.libs_path, ignore_errors=True)
+        rmtree(self.env.libs_path, ignore_errors=True)
 
-        required_tasks: dict[str, SetupTask] = {
-            "java": SetupJavaBin("java"),
-            "scala": SetupJavaBin("scala"),
-            "spark": SetupJavaBin("spark"),
-            "activate_script": SetupActivateScript(),
-            "setup_driver": SetupDriverConfig(),
-        }
+        tasks: list[SetupTask] = [
+            SetupJavaBin("java"),
+            SetupJavaBin("scala"),
+            SetupJavaBin("spark"),
+            SetupDriverConfig()
+        ]
 
-        optional_tasks: dict[str, SetupTask] = {
-            "setup_envs": SetupEnvsScript(),
-            "setup_metastore": SetupHiveMetastore(),
-            "setup_jars": SetupMavenJar(),
-            "delta": SetupDelta()
-        }
+        def add_optional_task(task_name: str):
+            tasks.append(self.get_optional_task(task_name))
 
-        include_optional_tasks: list[str] = []
+        if self.env.config.setup_type != 'local':
+            add_optional_task('setup_envs')
+        if self.env.config.jdbc_drivers:
+            add_optional_task('setup_jars')
+        if self.env.config.metastore_config:
+            add_optional_task("setup_metastore")
+        if "delta" in self.env.config.packages:
+            add_optional_task("delta")
 
-        if env.config.setup_type != 'local':
-            include_optional_tasks.append('setup_envs')
-        if env.config.jdbc_drivers:
-            include_optional_tasks.append('setup_jars')
-        if env.config.metastore_config:
-            include_optional_tasks.append("setup_metastore")
-        if "delta" in env.config.packages:
-            include_optional_tasks.append("delta")
+        # Setup activation script at very end to indicate rest of install completed successfully
+        tasks.append(SetupActivateScript())
 
-        for task_name, task in required_tasks.items():
-            print(f'Running task {task_name}')
-            task.run(env)
-
-        for task_name in include_optional_tasks:
-            print(f'Running task {task_name}')
-            task = optional_tasks[task_name]
-            task.run(env)
+        for task in tasks:
+            print(f'Running task {task.name()}')
+            task.run(self.env)
