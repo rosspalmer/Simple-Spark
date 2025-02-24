@@ -1,5 +1,5 @@
 
-from simplespark.config import *
+from simplespark.environment.config import *
 
 DEFAULT_VERSIONS = {
     "java": "11.0.21+9",

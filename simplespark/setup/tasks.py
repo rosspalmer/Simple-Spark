@@ -4,7 +4,7 @@ import tarfile
 
 from urllib.request import urlretrieve
 
-from simplespark.config import JdbcConfig, WorkerConfig
+from simplespark.environment.config import JdbcConfig, WorkerConfig
 from simplespark.environment import SimpleSparkEnvironment
 from simplespark.utils.maven import MavenDownloader
 

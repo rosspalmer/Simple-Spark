@@ -1,8 +1,7 @@
 import json
-import sys
 import typer
 
-from simplespark.config import SimpleSparkConfig
+from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment import SimpleSparkEnvironment
 from simplespark.setup.build import SetupBuilder
 from simplespark.templates import Templates

@@ -1,7 +1,7 @@
 
 from urllib.request import urlretrieve
 
-from simplespark.config import MavenConfig
+from simplespark.environment.config import MavenConfig
 
 
 class MavenDownloader:

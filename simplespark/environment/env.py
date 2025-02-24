@@ -1,5 +1,5 @@
 
-from simplespark.config import SimpleSparkConfig
+from simplespark.environment.config import SimpleSparkConfig
 from simplespark.utils.network import get_host_ip
 
 

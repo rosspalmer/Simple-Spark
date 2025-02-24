@@ -2,7 +2,7 @@
 import sys
 from typing import List
 
-from simplespark.config import SimpleSparkConfig
+from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment import SimpleSparkEnvironment
 from simplespark.setup.build import SetupBuilder
 
