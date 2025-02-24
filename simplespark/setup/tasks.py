@@ -5,7 +5,7 @@ import tarfile
 from urllib.request import urlretrieve
 
 from simplespark.environment.config import JdbcConfig, WorkerConfig
-from simplespark.environment import SimpleSparkEnvironment
+from simplespark.environment.env import SimpleSparkEnvironment
 from simplespark.utils.maven import MavenDownloader
 
 
@@ -16,11 +16,31 @@ class SetupTask(ABC):
         pass
 
 
+class SetupActivateScript(SetupTask):
+
+    def run(self, env: SimpleSparkEnvironment):
+
+        new_env_variables = {
+            "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
+            "SCALA_HOME": env.package_home_directory('scala'),
+            "SPARK_HOME": env.package_home_directory('spark')
+        }
+        new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
+
+        with open(env.get_activate_script_path(), 'w') as f:
+
+            # Add `export` command for each new environment variable
+            for k, v in new_env_variables.items():
+                f.write(f"export {k}={v}")
+
+            # Add additions to PATH variable by merging into single `export` command
+            f.write(f"export $PATH=$PATH:{':'.join(new_path_additions)}")
+
+
 class SetupJavaBin(SetupTask):
 
-    def __init__(self, package: str,  env_variables: dict[str, str]):
+    def __init__(self, package: str):
         self.package = package
-        self.env_variables = env_variables
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -37,15 +57,6 @@ class SetupJavaBin(SetupTask):
         lib_tarfile.extractall(env.libs_path)
         lib_tarfile.close()
         os.remove(download_path)
-
-        print(f"Updating profile script at: {env.config.profile_path}")
-        if not os.path.isfile(env.config.profile_path):
-            raise FileNotFoundError(f"Profile script not found: {env.config.profile_path}")
-
-        # TODO overwrite if exports already existing in file
-        with open(env.config.profile_path, 'a') as file:
-            for variable_name, variable_value in self.env_variables.items():
-                file.writelines(f'export {variable_name}={variable_value}\n')
 
 
 class SetupMavenJar(SetupTask):

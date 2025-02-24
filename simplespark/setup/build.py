@@ -2,7 +2,7 @@ from pathlib import Path
 from pprint import pprint
 from shutil import rmtree
 
-from simplespark.environment import SimpleSparkEnvironment
+from simplespark.environment.env import SimpleSparkEnvironment
 from simplespark.setup.tasks import *
 
 
@@ -21,16 +21,11 @@ class SetupBuilder:
         rmtree(env.libs_path, ignore_errors=True)
 
         required_tasks: dict[str, SetupTask] = {
-            "java": SetupJavaBin("java", {
-                "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
-                "PATH": "$PATH:$JAVA_HOME/bin"}),
-            "scala": SetupJavaBin("scala", {
-                "SCALA_HOME": env.package_home_directory('scala'),
-                "PATH": "$PATH:$SCALA_HOME/bin"}),
-            "spark": SetupJavaBin("spark", {
-                "SPARK_HOME": env.package_home_directory('spark'),
-                "PATH": "$PATH:$SPARK_HOME/bin"}),
-            "setup_driver": SetupDriverConfig()
+            "java": SetupJavaBin("java"),
+            "scala": SetupJavaBin("scala"),
+            "spark": SetupJavaBin("spark"),
+            "activate_script": SetupActivateScript(),
+            "setup_driver": SetupDriverConfig(),
         }
 
         optional_tasks: dict[str, SetupTask] = {
