@@ -3,7 +3,7 @@ import os
 import typer
 
 from simplespark.environment.config import SimpleSparkConfig
-from simplespark.environment import SimpleSparkEnvironment
+from simplespark.environment.env import SimpleSparkEnvironment
 from simplespark.setup.build import SetupBuilder
 from simplespark.templates import Templates
 
@@ -47,7 +47,7 @@ def setup(config_paths: str, local_host: str = ''):
     env = SimpleSparkEnvironment(config, local_host)
 
     print('Setup simplespark environment on hardware')
-    SetupBuilder.run(env)
+    SetupBuilder(env).run()
 
 
 @app.command()
