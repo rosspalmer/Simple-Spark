@@ -17,7 +17,7 @@ def activate(environment: str):
     if simple_spark_home is None:
         raise Exception("SIMPLE_SPARK_HOME environment variable not set, need to run `set_home` first")
 
-    activate_script_path = f"{simple_spark_home}/envs/{environment}.sh"
+    activate_script_path = f"{simple_spark_home}/activate/{environment}.sh"
 
     if not os.path.exists(activate_script_path):
         raise Exception(f"Activation script not found, need to run `setup` first: {activate_script_path}")
@@ -27,12 +27,15 @@ def info():
     print(f'TODO')
 
 @app.command()
-def set_home(simple_spark_home_directory: str, bash_file_path: str = '~/.bashrc'):
+def set_home(simple_spark_home_directory: str, bash_file_path: str):
+
+    # TODO add default bash_file_path pointed to user's .bashrc
 
     if not os.path.exists(simple_spark_home_directory):
+        print(f'SIMPLE_SPARK_HOME directory not found, creating: {simple_spark_home_directory}')
         os.makedirs(simple_spark_home_directory)
 
-    with open(bash_file_path) as f:
+    with open(bash_file_path, 'w') as f:
         f.write(f"export SIMPLE_SPARK_HOME={simple_spark_home_directory}")
 
 

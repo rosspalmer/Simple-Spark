@@ -27,7 +27,8 @@ class SimpleSparkEnvironment:
             "java": "https://github.com/adoptium/temurin11-binaries/releases/download"
                     f"/jdk-{config.get_package_version('java').replace('+', '%2B')}",
             "scala": f"https://downloads.lightbend.com/scala/{config.get_package_version('scala')}",
-            "spark": f"https://archive.apache.org/dist/spark/spark-{config.get_package_version('spark')}",
+            "spark": f"https://downloads.apache.org/spark/spark-{config.get_package_version('spark')}",
+            # "spark": f"https://archive.apache.org/dist/spark/spark-{config.get_package_version('spark')}",
         }
 
         self.package_names: dict[str, str] = {
@@ -69,8 +70,11 @@ class SimpleSparkEnvironment:
     def spark_env_sh_path(self) -> str:
         return f"{self.spark_home()}/conf/spark-env.sh"
 
+    def get_activate_script_directory(self) -> str:
+        return f"{self.simple_home}/activate"
+
     def get_activate_script_path(self) -> str:
-        return f"{self.spark_home()}/activate/{self.config.name}.sh"
+        return f"{self.get_activate_script_directory()}/{self.config.name}.sh"
 
     def hive_config_path(self) -> str:
         return f"{self.spark_home()}/conf/hive-site.xml"

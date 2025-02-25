@@ -19,6 +19,7 @@ class SetupTask(ABC):
     def run(self, env: SimpleSparkEnvironment):
         pass
 
+
 class SetupJavaBin(SetupTask):
 
     def __init__(self, package: str):
@@ -58,6 +59,9 @@ class DownloadJDBCDrivers(SetupTask):
 
 class SetupDelta(SetupTask):
 
+    def name(self) -> str:
+        return "setup-delta"
+
     def run(self, env: SimpleSparkEnvironment):
 
         print("Adding Delta libraries to spark_defaults.conf file")
@@ -71,6 +75,9 @@ class SetupDelta(SetupTask):
 
 
 class SetupDriverConfig(SetupTask):
+
+    def name(self) -> str:
+        return "setup_driver_config"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -98,6 +105,9 @@ class SetupDriverConfig(SetupTask):
 
 class SetupEnvsScript(SetupTask):
 
+    def name(self) -> str:
+        return "setup-envs-script"
+
     def run(self, env: SimpleSparkEnvironment):
 
         print(f"Setup spark-env.sh bash script at {env.spark_env_sh_path()}")
@@ -122,6 +132,9 @@ class SetupEnvsScript(SetupTask):
 
 
 class SetupHiveMetastore(SetupTask):
+
+    def name(self) -> str:
+        return "setup-metastore"
 
     @staticmethod
     def generate_hive_site_xml(env: SimpleSparkEnvironment) -> str:
@@ -176,6 +189,9 @@ class SetupHiveMetastore(SetupTask):
 
 class SetupActivateScript(SetupTask):
 
+    def name(self) -> str:
+        return "setup-activate-script"
+
     def run(self, env: SimpleSparkEnvironment):
 
         new_env_variables = {
@@ -185,11 +201,16 @@ class SetupActivateScript(SetupTask):
         }
         new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
 
+        if not os.path.exists(env.get_activate_script_directory()):
+            print("Activate script directory does not exist")
+            print(f"Creating: {env.get_activate_script_directory()}")
+            os.mkdir(env.get_activate_script_directory())
+
         with open(env.get_activate_script_path(), 'w') as f:
 
             # Add `export` command for each new environment variable
             for k, v in new_env_variables.items():
-                f.write(f"export {k}={v}")
+                f.write(f'\nexport {k}="{v}"')
 
             # Add additions to PATH variable by merging into single `export` command
-            f.write(f"export $PATH=$PATH:{':'.join(new_path_additions)}")
+            f.write(f"\nexport PATH=$PATH:{':'.join(new_path_additions)}")

@@ -23,10 +23,6 @@ class Templates:
 
         if 'name' not in kwargs:
             kwargs['name'] = '<SIMPLE-SPARK-ENV-NAME>'
-        if 'simple_path' not in kwargs:
-            kwargs['simple_home'] = '<SIMPLE-SPARK-HOME-DIRECTORY>'
-        if 'profile_path' not in kwargs:
-            kwargs['profile_path'] = '<BASH-PROFILE-FILE>'
 
         match template_type:
 
@@ -40,8 +36,7 @@ class Templates:
                 raise Exception(f'Unknown template type: {template_type}')
 
     @staticmethod
-    def generate_local(name: str, simple_home: str, profile_path: str,
-                       with_delta: bool = False) -> SimpleSparkConfig:
+    def generate_local(name: str, with_delta: bool = False) -> SimpleSparkConfig:
 
         packages = DEFAULT_VERSIONS.copy()
         del packages['hadoop']
@@ -51,8 +46,6 @@ class Templates:
         config = SimpleSparkConfig(
             name=name,
             setup_type='local',
-            simple_home=simple_home,
-            profile_path=profile_path,
             packages=packages,
             driver=driver
         )
@@ -69,10 +62,7 @@ class Templates:
         packages = DEFAULT_VERSIONS.copy()
         del packages['hadoop']
 
-        env = SimpleSparkConfig(
-            name, simple_home, profile_path, packages,
-            **kwargs
-        )
+        env = SimpleSparkConfig(name, 'standalone', packages, **kwargs)
 
         driver = kwargs['driver']
 
@@ -82,8 +72,6 @@ class Templates:
     def _update_kwargs_metastore(kwargs: dict[str, Any]) -> SimpleSparkConfig:
 
         name = kwargs['name']
-        simple_home = kwargs['simple_home']
-        profile_path = kwargs['profile_path']
 
         with_delta = kwargs.get('with_delta', False)
 
@@ -94,9 +82,7 @@ class Templates:
 
         driver = kwargs['driver']
 
-        env = SimpleSparkConfig(
-            name, simple_home, profile_path, packages, driver
-        )
+        env = SimpleSparkConfig(name, packages, driver)
 
         return env
 
