@@ -55,11 +55,14 @@ class SimpleSparkEnvironment:
     def libs_directory(self) -> str:
         return f"{self.simple_home}/libs"
 
-    def package_home_directory(self, package: str) -> str:
-        return f"{self.libs_directory()}/{self.package_names[package]}"
+    def get_package_libs_directory(self, package: str) -> str:
+        return f"{self.libs_directory()}/{package}"
+
+    def get_package_home_directory(self, package: str) -> str:
+        return f"{self.get_package_libs_directory(package)}/{self.config.get_package_version(package)}"
 
     def spark_home(self) -> str:
-        return self.package_home_directory("spark")
+        return self.get_package_home_directory("spark")
 
     def spark_jars_path(self) -> str:
         return f"{self.spark_home()}/jars"

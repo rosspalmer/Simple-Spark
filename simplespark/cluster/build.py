@@ -45,13 +45,13 @@ class SetupBuilder:
             tasks.append(self.get_optional_task(task_name))
 
         if self.env.config.setup_type != 'local':
-            add_optional_task('cluster-envs')
+            add_optional_task('setup-envs')
         if self.env.config.jdbc_drivers:
-            add_optional_task('cluster-jars')
+            add_optional_task('setup-jars')
         if self.env.config.metastore_config:
-            add_optional_task("cluster-metastore")
+            add_optional_task("setup-metastore")
         if "delta" in self.env.config.packages:
-            add_optional_task("cluster-delta")
+            add_optional_task("setup-delta")
 
         # Setup activation script at very end to indicate rest of install completed successfully
         tasks.append(SetupActivateScript())

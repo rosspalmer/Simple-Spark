@@ -1,3 +1,4 @@
+import shutil
 from abc import ABC, abstractmethod
 import os
 import tarfile
@@ -26,13 +27,12 @@ class SetupJavaBin(SetupTask):
         self.package = package
 
     def name(self) -> str:
-        return f"cluster-{self.package}-bin"
+        return f"setup-{self.package}-bin"
 
     def run(self, env: SimpleSparkEnvironment):
 
         download_url = env.full_package_url(self.package)
         download_path = f"{env.simple_home}/{env.archive_name(self.package)}"
-        lib_path = f"{env.libs_path}/{env.package_names[self.package]}"
 
         print(f"Downloading {self.package} binary from:")
         print(download_url)
@@ -41,8 +41,18 @@ class SetupJavaBin(SetupTask):
 
         lib_tarfile = tarfile.open(download_path, "r")
         lib_tarfile.extractall(env.libs_path)
+
+        extracted_folder_path = f"{env.libs_path}/{lib_tarfile.getnames()[0]}"
+
+        print(f"Move unpacked lib from {extracted_folder_path} to {env.get_package_home_directory(self.package)}")
+        if not os.path.exists(env.get_package_libs_directory(self.package)):
+            os.makedirs(env.get_package_libs_directory(self.package))
+
+        shutil.copytree(extracted_folder_path, env.get_package_home_directory(self.package))
+
         lib_tarfile.close()
         os.remove(download_path)
+        shutil.rmtree(extracted_folder_path)
 
 
 class DownloadJDBCDrivers(SetupTask):
@@ -60,7 +70,7 @@ class DownloadJDBCDrivers(SetupTask):
 class SetupDelta(SetupTask):
 
     def name(self) -> str:
-        return "cluster-delta"
+        return "setup-delta"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -77,7 +87,7 @@ class SetupDelta(SetupTask):
 class SetupDriverConfig(SetupTask):
 
     def name(self) -> str:
-        return "setup_driver_config"
+        return "setup-driver-config"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -106,7 +116,7 @@ class SetupDriverConfig(SetupTask):
 class SetupEnvsScript(SetupTask):
 
     def name(self) -> str:
-        return "cluster-envs-script"
+        return "setup-envs-script"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -134,7 +144,7 @@ class SetupEnvsScript(SetupTask):
 class SetupHiveMetastore(SetupTask):
 
     def name(self) -> str:
-        return "cluster-metastore"
+        return "setup-hive-metastore"
 
     @staticmethod
     def generate_hive_site_xml(env: SimpleSparkEnvironment) -> str:
@@ -190,14 +200,14 @@ class SetupHiveMetastore(SetupTask):
 class SetupActivateScript(SetupTask):
 
     def name(self) -> str:
-        return "cluster-activate-script"
+        return "setup-activate-script"
 
     def run(self, env: SimpleSparkEnvironment):
 
         new_env_variables = {
             "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
-            "SCALA_HOME": env.package_home_directory('scala'),
-            "SPARK_HOME": env.package_home_directory('spark')
+            "SCALA_HOME": env.get_package_home_directory('scala'),
+            "SPARK_HOME": env.get_package_home_directory('spark')
         }
         new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
 
