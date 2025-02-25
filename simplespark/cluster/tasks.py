@@ -26,7 +26,7 @@ class SetupJavaBin(SetupTask):
         self.package = package
 
     def name(self) -> str:
-        return f"setup-{self.package}-bin"
+        return f"cluster-{self.package}-bin"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -60,7 +60,7 @@ class DownloadJDBCDrivers(SetupTask):
 class SetupDelta(SetupTask):
 
     def name(self) -> str:
-        return "setup-delta"
+        return "cluster-delta"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -106,7 +106,7 @@ class SetupDriverConfig(SetupTask):
 class SetupEnvsScript(SetupTask):
 
     def name(self) -> str:
-        return "setup-envs-script"
+        return "cluster-envs-script"
 
     def run(self, env: SimpleSparkEnvironment):
 
@@ -134,7 +134,7 @@ class SetupEnvsScript(SetupTask):
 class SetupHiveMetastore(SetupTask):
 
     def name(self) -> str:
-        return "setup-metastore"
+        return "cluster-metastore"
 
     @staticmethod
     def generate_hive_site_xml(env: SimpleSparkEnvironment) -> str:
@@ -175,7 +175,7 @@ class SetupHiveMetastore(SetupTask):
 
         config = env.config.metastore_config
         if config is None:
-            raise Exception("Must specify `metastore_config` to setup Hive metastore")
+            raise Exception("Must specify `metastore_config` to cluster Hive metastore")
 
         supported_types = {t for t in env.config.jdbc_drivers.keys()}
         if config.db_type not in supported_types:
@@ -190,7 +190,7 @@ class SetupHiveMetastore(SetupTask):
 class SetupActivateScript(SetupTask):
 
     def name(self) -> str:
-        return "setup-activate-script"
+        return "cluster-activate-script"
 
     def run(self, env: SimpleSparkEnvironment):
 

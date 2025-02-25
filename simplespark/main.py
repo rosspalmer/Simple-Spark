@@ -4,7 +4,7 @@ import typer
 
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.env import SimpleSparkEnvironment
-from simplespark.setup.build import SetupBuilder
+from simplespark.cluster.build import SetupBuilder
 from simplespark.templates import Templates
 
 app = typer.Typer()
@@ -20,14 +20,14 @@ def activate(environment: str):
     activate_script_path = f"{simple_spark_home}/activate/{environment}.sh"
 
     if not os.path.exists(activate_script_path):
-        raise Exception(f"Activation script not found, need to run `setup` first: {activate_script_path}")
+        raise Exception(f"Activation script not found, need to run `build` first: {activate_script_path}")
 
 @app.command()
 def info():
     print(f'TODO')
 
 @app.command()
-def set_home(simple_spark_home_directory: str, bash_file_path: str):
+def install(simple_spark_home_directory: str, bash_file_path: str):
 
     # TODO add default bash_file_path pointed to user's .bashrc
 
@@ -35,12 +35,13 @@ def set_home(simple_spark_home_directory: str, bash_file_path: str):
         print(f'SIMPLE_SPARK_HOME directory not found, creating: {simple_spark_home_directory}')
         os.makedirs(simple_spark_home_directory)
 
-    with open(bash_file_path, 'w') as f:
-        f.write(f"export SIMPLE_SPARK_HOME={simple_spark_home_directory}")
+    with open(bash_file_path, 'a') as f:
+        f.write(f"\nexport SIMPLE_SPARK_HOME={simple_spark_home_directory}")
+        f.write(f"\nexport PATH=$PATH:{simple_spark_home_directory}/activate")
 
 
 @app.command()
-def setup(config_paths: str, local_host: str = ''):
+def build(config_paths: str, local_host: str = ''):
 
     print(f'Loading simplespark config file(s): {config_paths}')
     config_files: list[str] = config_paths.split(',')

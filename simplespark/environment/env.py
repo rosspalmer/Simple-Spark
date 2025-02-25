@@ -74,7 +74,7 @@ class SimpleSparkEnvironment:
         return f"{self.simple_home}/activate"
 
     def get_activate_script_path(self) -> str:
-        return f"{self.get_activate_script_directory()}/{self.config.name}.sh"
+        return f"{self.get_activate_script_directory()}/{self.config.name}"
 
     def hive_config_path(self) -> str:
         return f"{self.spark_home()}/conf/hive-site.xml"
