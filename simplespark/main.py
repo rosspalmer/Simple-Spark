@@ -23,10 +23,6 @@ def activate(environment: str):
         raise Exception(f"Activation script not found, need to run `build` first: {activate_script_path}")
 
 @app.command()
-def info():
-    print(f'TODO')
-
-@app.command()
 def install(simple_spark_home_directory: str, bash_file_path: str):
 
     # TODO add default bash_file_path pointed to user's .bashrc
