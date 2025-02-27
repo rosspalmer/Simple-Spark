@@ -53,9 +53,12 @@ class SetupBuilder:
         if "delta" in self.env.config.packages:
             add_optional_task("setup-delta")
 
-        # Setup activation script at very end to indicate rest of install completed successfully
-        tasks.append(SetupActivateScript())
+        # Add script tasks very end to indicate rest of install completed successfully
+        tasks.extend([
+            AddWorkersFile(),
+            SetupActivateScript()
+        ])
 
         for task in tasks:
-            print(f'Running task {task.name()}')
+            print(f'Running build task {task.name()}')
             task.run(self.env)

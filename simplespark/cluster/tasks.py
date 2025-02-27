@@ -224,3 +224,22 @@ class SetupActivateScript(SetupTask):
 
             # Add additions to PATH variable by merging into single `export` command
             f.write(f"\nexport PATH=$PATH:{':'.join(new_path_additions)}")
+
+
+class AddWorkersFile(SetupTask):
+
+    def name(self) -> str:
+        return "add-workers-file"
+
+    def run(self, env: SimpleSparkEnvironment):
+
+        if not env.config.workers is None:
+
+            workers_file_path = f'{env.spark_config_path()}/workers'
+
+            with open(workers_file_path, "w") as wf:
+                print(f'Creating {workers_file_path} file')
+
+                for w in env.config.workers:
+                    print(f'Adding worker: {w.host}')
+                    wf.write(w.host + '\n')
