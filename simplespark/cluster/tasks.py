@@ -205,7 +205,7 @@ class SetupActivateScript(SetupTask):
     def run(self, env: SimpleSparkEnvironment):
 
         new_env_variables = {
-            "JAVA_HOME": f"{env.libs_path}/jdk-{env.config.get_package_version('java')}",
+            "JAVA_HOME": env.get_package_home_directory('java'),
             "SCALA_HOME": env.get_package_home_directory('scala'),
             "SPARK_HOME": env.get_package_home_directory('spark')
         }
