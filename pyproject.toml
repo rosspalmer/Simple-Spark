@@ -17,6 +17,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = "^3.10"
 typer = "^0.15.1"
+paramiko = "3.5.1"
 
 [tool.poetry.scripts]
 simplespark = "simplespark.main:app"

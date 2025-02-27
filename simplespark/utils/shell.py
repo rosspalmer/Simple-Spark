@@ -1,17 +1,16 @@
 import os
 
+from paramiko.client import SSHClient
+
 
 class ShellCommand:
 
-    def __init__(self, root: str, *args, **kwargs):
-        self.root = root
-        self.args = args
-        self.kwargs = kwargs
-
-        self.command = self.generate_command_string(root, *args, **kwargs)
+    def __init__(self, host: str = None, port: int = None):
+        self.host = host
+        self.port = port
 
     @staticmethod
-    def generate_command_string(root: str, *args, **kwargs) -> str:
+    def generate(root: str, *args, **kwargs) -> str:
 
         args_string = ' '.join(args)
         kwargs_string = ' '.join([f'--{k} {v}' for k, v in kwargs.items()])
@@ -20,8 +19,23 @@ class ShellCommand:
 
         return command
 
-    def run(self) -> int:
+    def run(self, command: str):
 
-        exit_status = os.popen(self.command).close()
+        if self.host is None:
+            exit_status = os.popen(command).close()
+
+        else:
+
+            client = SSHClient()
+            client.load_system_host_keys()
+
+            if self.port is None:
+                client.connect(self.host)
+            else:
+                client.connect(self.host, self.port)
+
+            stdin, stdout, stderr = client.exec_command(command)
+
+            exit_status = stdout.channel.recv_exit_status()
 
         return exit_status
