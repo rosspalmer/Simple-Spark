@@ -12,7 +12,7 @@ class SetupBuilder:
 
         self.env = env
 
-        self.OPTIONAL_TASKS: list[SetupTask] = [
+        self.OPTIONAL_TASKS: list[BuildTask] = [
             SetupDriver(),
             SetupWorker(),
             SetupHiveMetastore(),
@@ -43,7 +43,7 @@ class SetupBuilder:
         if worker_config is not None:
             print(f'Setting up host as worker config: {worker_config}')
 
-        tasks: list[SetupTask] = [
+        tasks: list[BuildTask] = [
             PrepareConfigFiles(host),
             SetupJavaBin("java"),
             SetupJavaBin("scala"),

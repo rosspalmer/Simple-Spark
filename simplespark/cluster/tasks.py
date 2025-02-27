@@ -10,7 +10,7 @@ from simplespark.environment.env import SimpleSparkEnvironment
 from simplespark.utils.maven import MavenDownloader
 
 
-class SetupTask(ABC):
+class BuildTask(ABC):
 
     @abstractmethod
     def name(self) -> str:
@@ -21,7 +21,7 @@ class SetupTask(ABC):
         pass
 
 
-class PrepareConfigFiles(SetupTask):
+class PrepareConfigFiles(BuildTask):
 
     def __init__(self, host: str):
         self.host = host
@@ -39,7 +39,7 @@ class PrepareConfigFiles(SetupTask):
             env_sh_file.write(f'export SPARK_HOST_IP={env.config.driver.host}\n')
 
 
-class SetupJavaBin(SetupTask):
+class SetupJavaBin(BuildTask):
 
     def __init__(self, package: str):
         self.package = package
@@ -73,7 +73,7 @@ class SetupJavaBin(SetupTask):
         shutil.rmtree(extracted_folder_path)
 
 
-class DownloadJDBCDrivers(SetupTask):
+class DownloadJDBCDrivers(BuildTask):
 
     def name(self) -> str:
         return "download-jdbc-drivers"
@@ -85,7 +85,7 @@ class DownloadJDBCDrivers(SetupTask):
             MavenDownloader.download_jar(jdbc_driver, env.spark_jars_path())
 
 
-class SetupDelta(SetupTask):
+class SetupDelta(BuildTask):
 
     def name(self) -> str:
         return "setup-delta"
@@ -102,7 +102,7 @@ class SetupDelta(SetupTask):
             spark_config_file.write("spark.sql.catalog.spark_catalog org.apache.spark.sql.delta.catalog.DeltaCatalog\n")
 
 
-class SetupDriver(SetupTask):
+class SetupDriver(BuildTask):
 
     def name(self) -> str:
         return "setup-driver"
@@ -142,7 +142,7 @@ class SetupDriver(SetupTask):
                         wf.write(w.host + '\n')
 
 
-class SetupWorker(SetupTask):
+class SetupWorker(BuildTask):
 
     def __init__(self, worker_config: WorkerConfig):
         self.worker_config = worker_config
@@ -161,7 +161,7 @@ class SetupWorker(SetupTask):
             env_sh_file.write(f'export SPARK_WORKER_INSTANCES={self.worker_config.instances}\n')
 
 
-class SetupHiveMetastore(SetupTask):
+class SetupHiveMetastore(BuildTask):
 
     def name(self) -> str:
         return "setup-hive-metastore"
@@ -217,7 +217,7 @@ class SetupHiveMetastore(SetupTask):
             hc.write(self.generate_hive_site_xml(env))
 
 
-class SetupActivateScript(SetupTask):
+class SetupActivateScript(BuildTask):
 
     def name(self) -> str:
         return "setup-activate-script"
