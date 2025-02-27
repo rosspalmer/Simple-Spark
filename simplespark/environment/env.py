@@ -1,27 +1,19 @@
 
 import os
 
-from simplespark.environment.config import SimpleSparkConfig
+from simplespark.environment.config import SimpleSparkConfig, WorkerConfig
 from simplespark.utils.network import get_host_ip
 
 
 class SimpleSparkEnvironment:
 
-    def __init__(self, config: SimpleSparkConfig, local_host: str = ''):
+    def __init__(self, config: SimpleSparkConfig):
 
         self.config = config
         self.simple_home = os.environ.get("SIMPLE_SPARK_HOME", None)
 
         # FIXME replace with getter funciton
         self.libs_path = f"{self.simple_home}/libs"
-
-        if local_host == '':
-            print('Local host not set, detecting automatically')
-            local_host = get_host_ip()
-            print(f'Local IP detected: {local_host}')
-        self.local_host = local_host
-
-        self.is_driver = local_host == self.config.driver.host
 
         self.package_urls: dict[str, str] = {
             "java": "https://github.com/adoptium/temurin11-binaries/releases/download"
@@ -81,3 +73,14 @@ class SimpleSparkEnvironment:
 
     def hive_config_path(self) -> str:
         return f"{self.spark_home()}/conf/hive-site.xml"
+
+    def is_driver(self, host: str) -> bool:
+        return self.config.driver.host == host
+
+    def get_worker_config(self, host: str) -> WorkerConfig | None:
+        worker_config = None
+        for worker in self.config.workers:
+            if host == worker.host:
+                worker_config = worker
+                break
+        return worker_config
