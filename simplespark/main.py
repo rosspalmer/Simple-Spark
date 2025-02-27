@@ -56,6 +56,17 @@ def build(config_paths: str, local_host: str = ''):
 
 
 @app.command()
+def start(environment: str):
+    activate(environment)
+    os.system(f'sh $SPARK_HOME/sbin/start-all.sh')
+
+
+@app.command()
+def stop(environment: str):
+    activate(environment)
+    os.system(f'sh $SPARK_HOME/sbin/stop-all.sh')
+
+@app.command()
 def template(template_type: str, write_path: str):
 
     print(f'Create template type: {template_type} and write to path: {write_path}')
