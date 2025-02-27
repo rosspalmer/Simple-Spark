@@ -14,57 +14,55 @@ class SetupBuilder:
 
         self.OPTIONAL_TASKS: list[SetupTask] = [
             SetupDriver(),
-            SetupEnvsScript(),
+            SetupWorker(),
             SetupHiveMetastore(),
             DownloadJDBCDrivers(),
             SetupDelta()
         ]
-        self._optional: dict[str, SetupTask] = {t.name(): t for t in self.OPTIONAL_TASKS}
 
-    def get_optional_task(self, task_name: str) -> SetupTask:
-        return self._optional[task_name]
-
-    def run(self, host: str):
+    @staticmethod
+    def run(env: SimpleSparkEnvironment, host: str):
 
         print("Setup environment config:")
-        pprint(self.env.config.__dict__)
+        pprint(env.config.__dict__)
 
-        print(f"SimpleSpark HOME directory: {self.env.simple_home}")
-        simple_home = Path(self.env.simple_home)
+        print(f"SimpleSpark HOME directory: {env.simple_home}")
+        simple_home = Path(env.simple_home)
         if not simple_home.exists():
             simple_home.mkdir()
-        rmtree(self.env.libs_path, ignore_errors=True)
+        rmtree(env.libs_path, ignore_errors=True)
 
         print(f'Building on host "{host}"')
 
         driver_config = None
-        if self.env.is_driver(host):
-            driver_config = self.env.config.driver
+        if env.is_driver(host):
+            driver_config = env.config.driver
             print(f'Setting up host as driver: {driver_config}')
 
-        worker_config = self.env.get_worker_config(host)
+        worker_config = env.get_worker_config(host)
         if worker_config is not None:
             print(f'Setting up host as worker config: {worker_config}')
 
         tasks: list[SetupTask] = [
+            PrepareConfigFiles(host),
             SetupJavaBin("java"),
             SetupJavaBin("scala"),
             SetupJavaBin("spark"),
         ]
 
-        def add_optional_task(task_name: str):
-            tasks.append(self.get_optional_task(task_name))
-
         if driver_config is not None:
-            add_optional_task('setup-driver')
-        if self.env.config.setup_type != 'local':
-            add_optional_task('setup-envs')
-        if self.env.config.jdbc_drivers:
-            add_optional_task('setup-jars')
-        if self.env.config.metastore_config:
-            add_optional_task("setup-metastore")
-        if "delta" in self.env.config.packages:
-            add_optional_task("setup-delta")
+            tasks.append(SetupDriver())
+        if worker_config is not None:
+            tasks.append(SetupWorker(worker_config))
+        # FIXME do we need to install this on workers?
+        if env.config.jdbc_drivers:
+            tasks.append(None)  # TODO
+        # FIXME do we need to install this on workers?
+        if env.config.metastore_config:
+            tasks.append(SetupHiveMetastore())
+        # FIXME do we need to install this on workers?
+        if "delta" in env.config.packages:
+            tasks.append(SetupDelta())
 
         # Add script tasks very end to indicate rest of install completed successfully
         tasks.extend([

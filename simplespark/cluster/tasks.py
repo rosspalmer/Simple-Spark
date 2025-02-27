@@ -17,8 +17,26 @@ class SetupTask(ABC):
         pass
 
     @abstractmethod
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
         pass
+
+
+class PrepareConfigFiles(SetupTask):
+
+    def __init__(self, host: str):
+        self.host = host
+
+    def name(self) -> str:
+        return "prepare-config-files"
+
+    def run(self, env: SimpleSparkEnvironment):
+
+        print(f"Setup spark-env.sh bash script at {env.spark_env_sh_path()}")
+        with open(env.spark_env_sh_path(), 'w') as env_sh_file:
+
+            print("Writing required environment variables")
+            env_sh_file.write(f'export SPARK_LOCAL_IP={self.host}\n')
+            env_sh_file.write(f'export SPARK_HOST_IP={env.config.driver.host}\n')
 
 
 class SetupJavaBin(SetupTask):
@@ -29,7 +47,7 @@ class SetupJavaBin(SetupTask):
     def name(self) -> str:
         return f"setup-{self.package}-bin"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         download_url = env.full_package_url(self.package)
         download_path = f"{env.simple_home}/{env.archive_name(self.package)}"
@@ -60,7 +78,7 @@ class DownloadJDBCDrivers(SetupTask):
     def name(self) -> str:
         return "download-jdbc-drivers"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         for name, jdbc_driver in env.config.jdbc_drivers.items():
             print(f'Setting up JDBC for {name}')
@@ -72,7 +90,7 @@ class SetupDelta(SetupTask):
     def name(self) -> str:
         return "setup-delta"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         print("Adding Delta libraries to spark_defaults.conf file")
 
@@ -89,11 +107,10 @@ class SetupDriver(SetupTask):
     def name(self) -> str:
         return "setup-driver"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         print(f"Setup driver config at {env.spark_config_path()}")
 
-        # TODO overwrite delta configs instead of appending
         with open(env.spark_config_path(), 'a') as spark_config_file:
 
             if env.config.driver and env.config.driver.cores:
@@ -112,33 +129,36 @@ class SetupDriver(SetupTask):
             if env.config.warehouse_path:
                 spark_config_file.write(f"spark.sql.warehouse.dir {env.config.warehouse_path}\n")
 
+            # Add `conf/workers` file if running in standalone mode
+            if env.config.setup_type == 'standalone':
 
-class SetupEnvsScript(SetupTask):
+                workers_file_path = f'{env.spark_config_path()}/workers'
+
+                with open(workers_file_path, "w") as wf:
+                    print(f'Creating {workers_file_path} file')
+
+                    for w in env.config.workers:
+                        print(f'Adding worker: {w.host}')
+                        wf.write(w.host + '\n')
+
+
+class SetupWorker(SetupTask):
+
+    def __init__(self, worker_config: WorkerConfig):
+        self.worker_config = worker_config
 
     def name(self) -> str:
-        return "setup-envs-script"
+        return "setup-worker"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
-        print(f"Setup spark-env.sh bash script at {env.spark_env_sh_path()}")
-
-        worker_info: WorkerConfig | None = None
-        for worker_config in env.config.workers:
-            if worker_config.host == host:
-                worker_info = worker_config
-                break
+        print('Setting up worker configuration')
 
         with open(env.spark_env_sh_path(), 'a') as env_sh_file:
 
-            print("Writing required environment variables")
-            env_sh_file.write(f'export SPARK_LOCAL_IP={host}\n')
-            env_sh_file.write(f'export SPARK_HOST_IP={env.config.driver.host}\n')
-
-            if worker_info:
-                print(f"Found worker spec: {worker_info}")
-                env_sh_file.write(f'export SPARK_WORKER_CORES={worker_info.cores}\n')
-                env_sh_file.write(f'export SPARK_WORKER_MEMORY={worker_info.memory}\n')
-                env_sh_file.write(f'export SPARK_WORKER_INSTANCES={worker_info.instances}\n')
+            env_sh_file.write(f'export SPARK_WORKER_CORES={self.worker_config.cores}\n')
+            env_sh_file.write(f'export SPARK_WORKER_MEMORY={self.worker_config.memory}\n')
+            env_sh_file.write(f'export SPARK_WORKER_INSTANCES={self.worker_config.instances}\n')
 
 
 class SetupHiveMetastore(SetupTask):
@@ -181,7 +201,7 @@ class SetupHiveMetastore(SetupTask):
 
         return xml
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         config = env.config.metastore_config
         if config is None:
@@ -202,7 +222,7 @@ class SetupActivateScript(SetupTask):
     def name(self) -> str:
         return "setup-activate-script"
 
-    def run(self, env: SimpleSparkEnvironment, host: str):
+    def run(self, env: SimpleSparkEnvironment):
 
         new_env_variables = {
             "JAVA_HOME": env.get_package_home_directory('java'),
@@ -224,22 +244,3 @@ class SetupActivateScript(SetupTask):
 
             # Add additions to PATH variable by merging into single `export` command
             f.write(f"\nexport PATH=$PATH:{':'.join(new_path_additions)}")
-
-
-class AddWorkersFile(SetupTask):
-
-    def name(self) -> str:
-        return "add-workers-file"
-
-    def run(self, env: SimpleSparkEnvironment, host: str):
-
-        if not env.config.workers is None:
-
-            workers_file_path = f'{env.spark_config_path()}/workers'
-
-            with open(workers_file_path, "w") as wf:
-                print(f'Creating {workers_file_path} file')
-
-                for w in env.config.workers:
-                    print(f'Adding worker: {w.host}')
-                    wf.write(w.host + '\n')
