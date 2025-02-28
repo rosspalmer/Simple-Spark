@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from pathlib import Path
-from pprint import pprint
-from shutil import rmtree
 
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.tasks import (
-    BuildTask, SetupWorker, SetupDriver, SetupJavaBin,
-    PrepareConfigFiles, ConnectToHiveMetastore, SetupDelta,
-    SetupActivateScript)
+    BuildTask, SetupWorker, SetupDriver, SetupJavaBin, PrepareConfigFiles,
+    ConnectToHiveMetastore, SetupDelta, SetupActivateScript
+)
+from simplespark.utils.ssh import SSHUtils
+
 
 class Builder(ABC):
 
-    def __init__(self, config: Sim):
-        self.env = env
+    def __init__(self, config: SimpleSparkConfig, host: str):
+        self.config = config
+        self.host = host
 
     def run(self):
 
@@ -23,10 +23,6 @@ class Builder(ABC):
 
     @abstractmethod
     def _generate_build_tasks(self) -> list[BuildTask]:
-        pass
-
-    @abstractmethod
-    def get_mode(self):
         pass
 
     def _generate_core_tasks(self) -> list[BuildTask]:
@@ -43,13 +39,13 @@ class Builder(ABC):
         tasks = list()
 
         # FIXME do we need to install this on workers?
-        if self.env.config.jdbc_drivers:
+        if self.config.jdbc_drivers:
             tasks.append(None)  # TODO
         # FIXME do we need to install this on workers?
-        if self.env.config.metastore_config:
+        if self.config.metastore_config:
             tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
-        if "delta" in self.env.config.packages:
+        if "delta" in self.config.packages:
             tasks.append(SetupDelta())
 
         return tasks
@@ -57,15 +53,12 @@ class Builder(ABC):
 
 class LocalBuilder(Builder):
 
-    def get_mode(self) -> str:
-        return "local"
-
     def _generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
         tasks.append(SetupDriver())
 
-        worker_config = self.env.get_worker_config(self.env.config.driver.host)
+        worker_config = self.config.get_worker_config(self.config.driver.host)
         assert worker_config is not None
         tasks.append(SetupWorker(worker_config))
 
@@ -75,10 +68,7 @@ class LocalBuilder(Builder):
         return tasks
 
 
-class StandaloneBuilder(Builder):
-
-    def get_mode(self) -> str:
-        return "standalone"
+class StandaloneDriverBuilder(Builder):
 
     def _generate_build_tasks(self) -> list[BuildTask]:
 
@@ -88,90 +78,74 @@ class StandaloneBuilder(Builder):
         tasks.extend(self._generate_optional_tasks())
         tasks.append(SetupActivateScript())
 
-        worker_config = self.env.get_worker_config(self.env.config.driver.host)
-        assert worker_config is not None
+        return tasks
+
+
+class StandaloneWorkerBuilder(Builder):
+
+    def _generate_build_tasks(self) -> list[BuildTask]:
+
+        tasks = self._generate_core_tasks()
+
+        worker_config = self.config.get_worker_config(self.host)
         tasks.append(SetupWorker(worker_config))
 
-        tasks.extend(self._generate_optional_tasks())
         tasks.append(SetupActivateScript())
 
+        return tasks
 
 
+def build_worker(config: SimpleSparkConfig, host: str):
 
-def build_environment(env: SimpleSparkEnvironment):
-
-    builder = None
-    if env.config.setup_type == 'local':
-        builder = LocalBuilder(env)
-    elif env.config.setup_type == 'standalone':
-        builder = StandaloneBuilder(env)
-
-    assert builder is not None
-
-    builder.run()
+    if config.setup_type == 'standalone':
+        StandaloneWorkerBuilder(config, host).run()
+    else:
+        raise RuntimeError(f'Unsupported setup_type: {config.setup_type}')
 
 
-class EnvironmentBuilder:
+def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
-    @staticmethod
-    def run(env: SimpleSparkEnvironment):
+    ssh = SSHUtils(host)
 
-        # Run builder function on host driver machine
-        EnvironmentBuilder.run_on_host(env, env.config.driver.host)
+    # Make SIMPLE_SPARK_HOME directory for copying over files
+    ssh.create_directory(config.simple_home)
 
-        # Run builder function on worker machines via SSH
-        for worker in env.config.workers:
-            sc = ShellCommand(worker.host)
-            sc.run('pip install simplespark')
+    # Copy over config json from driver to worker
+    ssh.create_directory(f'{config.simple_home}/config')
+    config_file_path = f'{config.simple_home}/config/{config.name}.json'
+    ssh.copy(config_file_path, config_file_path)
+
+    # Copy over packages from driver to worker
+    ssh.create_directory(config.libs_directory)
+    for package in config.packages:
+        package_directory = config.get_package_home_directory(package.name)
+        print(f'Copying over {package} to {package_directory}')
+        ssh.copy_directory(package_directory, package_directory)
+
+    # TODO Only run if install is needed
+    debug = ssh.run(f'pip install simplespark')
+    debug = ssh.run(f'simplespark build {config.name} {host}')
 
 
-    @staticmethod
-    def run_on_host(env: SimpleSparkEnvironment, host: str):
+def build_environment(config: SimpleSparkConfig):
 
-        print("Setup environment config:")
-        pprint(env.config.__dict__)
+    if config.setup_type == 'local':
+        builder = LocalBuilder(config, 'localhost')
+        builder.run()
 
-        print(f"SimpleSpark HOME directory: {env.simple_home}")
-        simple_home = Path(env.simple_home)
-        if not simple_home.exists():
-            simple_home.mkdir()
-        rmtree(env.libs_path, ignore_errors=True)
+    elif config.setup_type == 'standalone':
 
-        print(f'Building on host "{host}"')
+        print(f'Building driver: {config.driver.host}')
+        builder = StandaloneDriverBuilder(config, config.driver.host)
+        builder.run()
 
-        driver_config = None
-        if env.is_driver(host):
-            driver_config = env.config.driver
-            print(f'Setting up host as driver: {driver_config}')
+        worker_hosts = [w.host for w in config.workers if w.host != config.driver.host]
+        print(f'Found {len(worker_hosts)} worker hosts')
 
-        worker_config = env.get_worker_config(host)
-        if worker_config is not None:
-            print(f'Setting up host as worker config: {worker_config}')
+        for worker_host in worker_hosts:
+            print(f'Building worker over SSH: {worker_host}')
+            build_worker_via_ssh(config, worker_host)
 
-        tasks: list[BuildTask] = [
-            PrepareConfigFiles(host),
-            SetupJavaBin("java"),
-            SetupJavaBin("scala"),
-            SetupJavaBin("spark"),
-        ]
+    else:
 
-        if driver_config is not None:
-            tasks.append(SetupDriver())
-        if worker_config is not None:
-            tasks.append(SetupWorker(worker_config))
-        # FIXME do we need to install this on workers?
-        if env.config.jdbc_drivers:
-            tasks.append(None)  # TODO
-        # FIXME do we need to install this on workers?
-        if env.config.metastore_config:
-            tasks.append(ConnectToHiveMetastore())
-        # FIXME do we need to install this on workers?
-        if "delta" in env.config.packages:
-            tasks.append(SetupDelta())
-
-        # Add script tasks very end to indicate rest of install completed successfully
-        tasks.append(SetupActivateScript())
-
-        for task in tasks:
-            print(f'Running build task {task.name()}')
-            task.run(env)
+        raise Exception(f'Unknown setup type: {config.setup_type}')
