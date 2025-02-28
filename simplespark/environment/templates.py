@@ -41,6 +41,9 @@ class Templates:
         packages = DEFAULT_VERSIONS.copy()
         del packages['hadoop']
 
+        if not with_delta:
+            del packages['delta']
+
         driver = DriverConfig('local')
 
         config = SimpleSparkConfig(
@@ -72,7 +75,6 @@ class Templates:
     def _update_kwargs_metastore(kwargs: dict[str, Any]) -> SimpleSparkConfig:
 
         name = kwargs['name']
-
         with_delta = kwargs.get('with_delta', False)
 
         packages = DEFAULT_VERSIONS.copy()

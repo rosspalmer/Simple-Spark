@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
-from multiprocessing.pool import worker
 from pathlib import Path
 from pprint import pprint
 from shutil import rmtree
 
-from simplespark.environment.env import SimpleSparkEnvironment
-from simplespark.environment.tasks import BuildTask, SetupWorker, SetupDriver, SetupJavaBin, PrepareConfigFiles, \
-    SetupHiveMetastore, SetupDelta, SetupActivateScript
-from simplespark.utils.ssh import ShellCommand
+from simplespark.environment.config import SimpleSparkConfig
+from simplespark.environment.tasks import (
+    BuildTask, SetupWorker, SetupDriver, SetupJavaBin,
+    PrepareConfigFiles, ConnectToHiveMetastore, SetupDelta,
+    SetupActivateScript)
 
 class Builder(ABC):
 
-    def __init__(self, env: SimpleSparkEnvironment):
+    def __init__(self, config: Sim):
         self.env = env
 
     def run(self):
@@ -47,7 +47,7 @@ class Builder(ABC):
             tasks.append(None)  # TODO
         # FIXME do we need to install this on workers?
         if self.env.config.metastore_config:
-            tasks.append(SetupHiveMetastore())
+            tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
         if "delta" in self.env.config.packages:
             tasks.append(SetupDelta())
@@ -104,12 +104,12 @@ def build_environment(env: SimpleSparkEnvironment):
     if env.config.setup_type == 'local':
         builder = LocalBuilder(env)
     elif env.config.setup_type == 'standalone':
-        builder =
+        builder = StandaloneBuilder(env)
+
     assert builder is not None
 
     builder.run()
 
-    return None
 
 class EnvironmentBuilder:
 
@@ -164,7 +164,7 @@ class EnvironmentBuilder:
             tasks.append(None)  # TODO
         # FIXME do we need to install this on workers?
         if env.config.metastore_config:
-            tasks.append(SetupHiveMetastore())
+            tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
         if "delta" in env.config.packages:
             tasks.append(SetupDelta())

@@ -1,4 +1,4 @@
-
+import os
 from dataclasses import dataclass, asdict
 import json
 from typing import Any, Dict, List
@@ -9,6 +9,60 @@ class DriverConfig:
     host: str
     cores: int = None
     memory: str = None
+
+
+@dataclass
+class PackageConfig:
+    name: str
+    version: str
+
+    @property
+    def package_file_name(self) -> str:
+
+        NAME_MAP = {
+            'java': f'OpenJDK11U-jdk_x64_linux_hotspot_{self.version.replace('+', '_')}.tar.gz',
+            "scala": f"scala-{self.version}.tgz",
+            "spark": f"spark-{self.version}-bin-hadoop3.tgz"
+        }
+
+        package_file_name = NAME_MAP.get(self.name)
+        assert package_file_name is not None
+
+        return package_file_name
+
+    @property
+    def package_releases_url(self) -> str:
+
+        URL_MAP: dict[str, str] = {
+            "java": "https://github.com/adoptium/temurin11-binaries/releases/download",
+            "scala": "https://downloads.lightbend.com/scala",
+            "spark": "https://downloads.apache.org/spark",
+            # "spark": f"https://archive.apache.org/dist/spark/",
+        }
+
+        package_releases_url = URL_MAP.get(self.version)
+        assert package_releases_url is not None
+
+        return package_releases_url
+
+
+    @property
+    def package_version_directory(self) -> str:
+
+        DIRECTORY_MAP: dict[str, str] = {
+            "java": f"jdk-{self.version.replace('+', '%2B')}",
+            "scala": self.version,
+            "spark": f"spark-{self.version}",
+        }
+
+        package_version_directory = DIRECTORY_MAP.get(self.version)
+        assert package_version_directory is not None
+
+        return package_version_directory
+
+    @property
+    def package_download_url(self) -> str:
+        return f'{self.package_releases_url}/{self.package_version_directory}/{self.package_file_name}'
 
 
 @dataclass
@@ -51,8 +105,10 @@ class MavenConfig:
 @dataclass
 class SimpleSparkConfig:
     name: str
+    simple_home: str
+    bash_file_path: str
     setup_type: str
-    packages: Dict[str, str]
+    packages: List[PackageConfig]
     driver: DriverConfig
     derby_path: str = None
     warehouse_path: str = None
@@ -61,36 +117,15 @@ class SimpleSparkConfig:
     executor_memory: str = None
     jdbc_drivers: Dict[str, MavenConfig] = None
 
+    def __post_init__(self):
+        self._package_map: dict[str, PackageConfig] = {p.name: p for p in self.packages}
+
     def __str__(self) -> str:
 
-        config_json = self.get_as_json()
+        config_json = self.to_json()
         json_string = json.dumps(config_json, indent=2)
 
         return json_string
-
-    def get_as_json(self):
-
-        def remove_nulls(d: dict[str, Any]):
-            for k, v in d.copy().items():
-                if v is None:
-                    del d[k]
-                elif isinstance(v, dict):
-                    remove_nulls(v)
-
-        config_json = asdict(self)
-        remove_nulls(config_json)
-
-        return config_json
-
-    def get_package_version(self, package_name: str) -> str:
-        return self.packages[package_name]
-
-    def write(self, json_path: str):
-
-        as_string = str(self)
-
-        with open(json_path, 'w') as write_file:
-            write_file.write(as_string)
 
     @staticmethod
     def get_field_deserializers() -> Dict[str, callable]:
@@ -106,6 +141,15 @@ class SimpleSparkConfig:
         return deserializers
 
     @staticmethod
+    def from_json(json_dict):
+
+        for field_name, deserializer in SimpleSparkConfig.get_field_deserializers().items():
+            if field_name in json_dict:
+                json_dict[field_name] = deserializer(json_dict)
+
+        return SimpleSparkConfig(**json_dict)
+
+    @staticmethod
     def read(*json_path: str):
 
         config_dict = {}
@@ -115,8 +159,84 @@ class SimpleSparkConfig:
             with open(path, 'r') as read_file:
                 config_dict = config_dict | json.load(read_file)
 
-        for field_name, deserializer in SimpleSparkConfig.get_field_deserializers().items():
-            if field_name in config_dict:
-                config_dict[field_name] = deserializer(config_dict)
+        return SimpleSparkConfig.from_json(config_dict)
 
-        return SimpleSparkConfig(**config_dict)
+    @property
+    def activate_script_directory(self) -> str:
+        return f"{self.simple_home}/activate"
+
+    @property
+    def activate_script_path(self) -> str:
+        return f"{self.activate_script_directory}/{self.name}.sh"
+
+    @property
+    def hive_config_path(self) -> str:
+        return f"{self.spark_home}/conf/hive-site.xml"
+
+    @property
+    def libs_directory(self) -> str:
+        return f"{self.simple_home}/libs"
+
+    @property
+    def spark_home(self) -> str:
+        return self.get_package_home_directory('spark')
+
+    @property
+    def spark_config_path(self) -> str:
+        return f"{self.spark_home}/conf/spark-defaults.conf"
+
+    @property
+    def spark_env_sh_path(self) -> str:
+        return f"{self.spark_home}/conf/spark-env.sh"
+
+    @property
+    def spark_jars_path(self) -> str:
+        return f"{self.spark_home}/jars"
+
+    def activate_environment(self):
+        os.system(f"source {self.activate_script_path}")
+
+    def get_package_config(self, package: str) -> PackageConfig:
+        if not self.has_package(package):
+            raise Exception(f"Package {package} does not defined in config")
+        return self._package_map[package]
+
+    def get_package_home_directory(self, package: str) -> str:
+        return f"{self.libs_directory}/{package}/{self.get_package_version(package)}"
+
+    def get_package_version(self, package_name: str) -> str:
+        package_config = self.get_package_config(package_name)
+        return package_config.version
+
+    def get_worker_config(self, host: str) -> WorkerConfig | None:
+        worker_config = None
+        for worker in self.workers:
+            if host == worker.host:
+                worker_config = worker
+                break
+        return worker_config
+
+    def has_package(self, package: str) -> bool:
+        return package in self._package_map
+
+    def to_json(self, remove_nulls: bool = True) -> str:
+
+        def remove_nulls_from_dict(d: dict[str, Any]):
+            for k, v in d.copy().items():
+                if v is None:
+                    del d[k]
+                elif isinstance(v, dict):
+                    remove_nulls_from_dict(v)
+
+        config_json = asdict(self)
+        if remove_nulls:
+            remove_nulls_from_dict(config_json)
+
+        return config_json
+
+    def write(self, json_path: str):
+
+        as_string = str(self)
+
+        with open(json_path, 'w') as write_file:
+            write_file.write(as_string)
