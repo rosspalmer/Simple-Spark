@@ -8,6 +8,7 @@ from urllib.request import urlretrieve
 from simplespark.environment.config import JdbcConfig, WorkerConfig
 from simplespark.environment.env import SimpleSparkEnvironment
 from simplespark.utils.maven import MavenDownloader
+from simplespark.utils.ssh import SSHUtils
 
 
 class BuildTask(ABC):
@@ -244,3 +245,20 @@ class SetupActivateScript(BuildTask):
 
             # Add additions to PATH variable by merging into single `export` command
             f.write(f"\nexport PATH=$PATH:{':'.join(new_path_additions)}")
+
+
+class SetupWorkerViaSSH(BuildTask):
+
+    def __init__(self, env: SimpleSparkEnvironment, host: str):
+        super().__init__(env)
+        self.host = host
+
+    def name(self) -> str:
+        return "setup-worker-via-ssh"
+
+    def run(self, env: SimpleSparkEnvironment):
+
+        ssh = SSHUtils(self.host)
+
+
+        ssh.run(f'simplespark  ')

@@ -4,7 +4,7 @@ import typer
 
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.env import SimpleSparkEnvironment
-from simplespark.cluster.build import SetupBuilder
+from simplespark.environment.build import EnvironmentBuilder
 from simplespark.environment.templates import Templates
 
 app = typer.Typer()
@@ -37,7 +37,7 @@ def install(simple_spark_home_directory: str, bash_file_path: str):
 
 
 @app.command()
-def build(config_paths: str, local_host: str = ''):
+def build(config_paths: str):
 
     if os.environ.get("SIMPLE_SPARK_HOME") is None:
         raise Exception("SIMPLE_SPARK_HOME environment variable not set, need to `install` first")
@@ -50,10 +50,14 @@ def build(config_paths: str, local_host: str = ''):
     env = SimpleSparkEnvironment(config, local_host)
 
     print('Setup simplespark environment on hardware')
-    SetupBuilder(env).run()
+    EnvironmentBuilder(env).run_on_host()
 
     print(f'Run `source {env.config.name}` to activate environment')
 
+
+def build_worker(config_json: str):
+    config = json.loads(config_json)
+    env = SimpleSparkEnvironment(config)
 
 @app.command()
 def start(environment: str):
