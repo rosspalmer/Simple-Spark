@@ -40,7 +40,7 @@ class PackageConfig:
             # "spark": f"https://archive.apache.org/dist/spark/",
         }
 
-        package_releases_url = URL_MAP.get(self.version)
+        package_releases_url = URL_MAP.get(self.name)
         assert package_releases_url is not None
 
         return package_releases_url
@@ -55,7 +55,7 @@ class PackageConfig:
             "spark": f"spark-{self.version}",
         }
 
-        package_version_directory = DIRECTORY_MAP.get(self.version)
+        package_version_directory = DIRECTORY_MAP.get(self.name)
         assert package_version_directory is not None
 
         return package_version_directory
@@ -105,8 +105,8 @@ class MavenConfig:
 @dataclass
 class SimpleSparkConfig:
     name: str
-    simple_home: str
-    bash_file_path: str
+    simplespark_home: str
+    bash_profile_file: str
     setup_type: str
     packages: List[PackageConfig]
     driver: DriverConfig
@@ -133,7 +133,8 @@ class SimpleSparkConfig:
         # Write deserializers as lambdas to not require all fields to be defined
         deserializers = {
             'driver': lambda c: DriverConfig(**c['driver']),
-            'workers': lambda c: list(map(lambda x: WorkerConfig(**x), c['workers'])),
+            'packages': lambda c: [PackageConfig(**p) for p in c['packages']],
+            'workers': lambda c: [WorkerConfig(**w) for w in c['workers']],
             'metastore_config': lambda c: JdbcConfig(**c['metastore_config']),
             'jbc_drivers': lambda c: {k: MavenConfig(**v) for k, v in c['jdbc_drivers'].items()}
         }
@@ -163,7 +164,7 @@ class SimpleSparkConfig:
 
     @property
     def activate_script_directory(self) -> str:
-        return f"{self.simple_home}/activate"
+        return f"{self.simplespark_home}/activate"
 
     @property
     def activate_script_path(self) -> str:
@@ -174,8 +175,12 @@ class SimpleSparkConfig:
         return f"{self.spark_home}/conf/hive-site.xml"
 
     @property
-    def libs_directory(self) -> str:
-        return f"{self.simple_home}/libs"
+    def simplespark_config_directory(self) -> str:
+        return f"{self.simplespark_home}/config"
+
+    @property
+    def simplespark_libs_directory(self) -> str:
+        return f"{self.simplespark_home}/libs"
 
     @property
     def spark_home(self) -> str:
@@ -202,7 +207,7 @@ class SimpleSparkConfig:
         return self._package_map[package]
 
     def get_package_home_directory(self, package: str) -> str:
-        return f"{self.libs_directory}/{package}/{self.get_package_version(package)}"
+        return f"{self.simplespark_libs_directory}/{package}/{self.get_package_version(package)}"
 
     def get_package_version(self, package_name: str) -> str:
         package_config = self.get_package_config(package_name)

@@ -1,10 +1,8 @@
-import json
 import os
-import tempfile
 
 import typer
 
-from simplespark.environment.build import build_environment, build_worker
+from simplespark.environment.build import build_environment, build_worker, build_home
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.templates import Templates
 
@@ -14,54 +12,48 @@ app = typer.Typer()
 @app.command()
 def activate(environment: str):
 
-    simple_spark_home = os.environ.get("SIMPLE_SPARK_HOME", None)
-    if simple_spark_home is None:
-        raise Exception("SIMPLE_SPARK_HOME environment variable not set, need to run `install` first")
+    simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
+    if simplespark_home is None:
+        raise Exception("SIMPLESPARK_HOME environment variable not set, need to run `build` first")
 
-    activate_script_path = f"{simple_spark_home}/activate/{environment}.sh"
+    activate_script_path = f"{simplespark_home}/activate/{environment}.sh"
 
     if not os.path.exists(activate_script_path):
         raise Exception(f"Activation script not found, need to run `build` first: {activate_script_path}")
 
+
 @app.command()
-def upload(config_paths: str):
+def build(config_paths: str):
 
     config_files: list[str] = config_paths.split(',')
     config = SimpleSparkConfig.read(*config_files)
 
-    simple_spark_home = os.environ.get("SIMPLESPARK_HOME", "")
-    if config.simple_home != simple_spark_home:
-        print('Setting up new SIMPLESPARK_HOME variable, need to reset terminal to take effect')
-        print(f'or use `source {config.bash_file_path}`')
+    simplespark_home = os.environ.get("SIMPLESPARK_HOME", "")
+    if config.simplespark_home != simplespark_home:
+        print('Setting up new SIMPLESPARK_HOME directory')
+        build_home(config)
 
-        if not os.path.exists(config.simple_home):
-            print(f'Created empty HOME folder: {config.simple_home}')
-            os.makedirs(config.simple_home)
+    config.write(f'{config.simplespark_home}/config/{config.name}.json')
 
-        with open(config.bash_file_path, 'a') as f:
-            f.write(f"\nexport SIMPLESPARK_HOME={config.simple_home}")
-            f.write(f"\nexport PATH=$PATH:{config.simple_home}/activate")
+    print('Setup simplespark environment')
+    build_environment(config)
 
-    config.write(f'{config.simple_home}/config/{config.name}.json')
+    print(f'Run `source {config.name}` to activate environment')
 
 
 @app.command()
-def build(environment: str, worker_host: str = None):
+def worker(simplespark_config_path: str, worker_host: str):
 
-    simplespark_home = os.environ.get("SIMPLE_SPARK_HOME")
-    if simplespark_home is None:
-        raise Exception("SIMPLE_SPARK_HOME environment variable not set")
+    config = SimpleSparkConfig.read(simplespark_config_path)
 
-    config = SimpleSparkConfig.read(f'{simplespark_home}/config/{environment}.json')
+    simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
+    if config.simplespark_home != simplespark_home:
+        print(f'Setting up new SIMPLESPARK_HOME directory {config.simplespark_home}')
+        build_home(config)
 
-    if worker_host is None:
-        print('Setup simplespark environment')
-        build_environment(config)
-    else:
-        print(f'Setup simplespark environment on worker {worker_host}')
-        build_worker(config, worker_host)
+    print(f'Setup simplespark environment on worker {worker_host}')
+    build_worker(config, worker_host)
 
-    print(f'Run `source {config.name}` to activate environment')
 
 @app.command()
 def start(environment: str):
@@ -80,8 +72,5 @@ def template(template_type: str, write_path: str):
 
     print(f'Create template type: {template_type} and write to path: {write_path}')
 
-    template = Templates.generate(template_type)
-    template_json = template.get_as_json()
-
-    with open(write_path, 'w') as f:
-        json.dump(template_json, f, indent=2)
+    template_config = Templates.generate(template_type)
+    template_config.write(write_path)

@@ -40,30 +40,39 @@ class SetupJavaBin(BuildTask):
     def run(self, config: SimpleSparkConfig):
 
         package_config = config.get_package_config(self.package)
+        package_directory = f'{config.simplespark_libs_directory}/{self.package}'
+        if not os.path.exists(package_directory):
+            os.makedirs(package_directory)
 
         download_url = package_config.package_download_url
-        download_path = f"{config.simple_home}/{package_config.package_file_name}"
+        download_path = f"{config.simplespark_home}/{package_config.package_file_name}"
 
-        print(f"Downloading {self.package} binary from:")
-        print(download_url)
+        if not os.path.exists(config.get_package_home_directory(self.package)):
 
-        urlretrieve(download_url, download_path)
+            print(f"Downloading {self.package} binary from:")
+            print(download_url)
 
-        lib_tarfile = tarfile.open(download_path, "r")
-        lib_tarfile.extractall(config.libs_directory)
+            urlretrieve(download_url, download_path)
 
-        # Assumes single folder in extract with package extracted within
-        extracted_folder_path = f"{config.libs_directory}/{lib_tarfile.getnames()[0]}"
+            lib_tarfile = tarfile.open(download_path, "r")
+            lib_tarfile.extractall(config.simplespark_libs_directory)
 
-        print(f"Move unpacked lib from {extracted_folder_path} to {config.get_package_home_directory(self.package)}")
-        if not os.path.exists(f"{config.libs_directory}/{self.package}"):
-            os.makedirs(f"{config.libs_directory}/{self.package}")
+            # Assumes single folder in extract with package extracted within
+            extracted_folder_path = f"{config.simplespark_libs_directory}/{lib_tarfile.getnames()[0]}"
 
-        shutil.copytree(extracted_folder_path, config.get_package_home_directory(self.package))
+            print(f"Move unpacked lib from {extracted_folder_path} to {config.get_package_home_directory(self.package)}")
+            if not os.path.exists(f"{config.simplespark_libs_directory}/{self.package}"):
+                os.makedirs(f"{config.simplespark_libs_directory}/{self.package}")
 
-        lib_tarfile.close()
-        os.remove(download_path)
-        shutil.rmtree(extracted_folder_path)
+            shutil.copytree(extracted_folder_path, config.get_package_home_directory(self.package))
+
+            lib_tarfile.close()
+            os.remove(download_path)
+            shutil.rmtree(extracted_folder_path)
+
+        else:
+
+            print(f"Package version already downloaded at {config.get_package_home_directory(self.package)}")
 
 
 class PrepareConfigFiles(BuildTask):

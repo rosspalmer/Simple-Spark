@@ -1,14 +1,14 @@
 
 from simplespark.environment.config import *
 
-DEFAULT_VERSIONS = {
-    "java": "11.0.21+9",
-    "scala": "2.12.18",
-    "spark": "3.5.2",
-    "delta": "3.2.0",
-    "hadoop": "3.3.1",
-    "hive": "3.1.2"
-}
+DEFAULT_PACKAGES = [
+    PackageConfig("java", "11.0.21+9"),
+    PackageConfig("scala", "2.12.18"),
+    PackageConfig("spark", "3.5.2"),
+    PackageConfig("delta", "3.2.0"),
+    PackageConfig("hadoop", "3.3.1"),
+    PackageConfig("hive", "3.1.2")
+]
 
 
 DEFAULT_JDBC = {
@@ -23,6 +23,10 @@ class Templates:
 
         if 'name' not in kwargs:
             kwargs['name'] = '<SIMPLE-SPARK-ENV-NAME>'
+        if 'simplespark_home' not in kwargs:
+            kwargs['simplespark_home'] = '<SIMPLESPARK-HOME-DIRECTORY>'
+        if 'bash_profile_file' not in kwargs:
+            kwargs['bash_profile_file'] = '<SHELL-BASH-PROFILE-FILE>'
 
         match template_type:
 
@@ -30,24 +34,27 @@ class Templates:
                 return Templates.generate_local(**kwargs)
 
             case "standalone":
-                return Templates._generate_standalone(kwargs)
+                return Templates.generate_standalone(**kwargs)
 
             case _:
                 raise Exception(f'Unknown template type: {template_type}')
 
     @staticmethod
-    def generate_local(name: str, with_delta: bool = False) -> SimpleSparkConfig:
+    def generate_local(name: str, simplespark_home: str, bash_profile_file: str,
+                       with_delta: bool = False) -> SimpleSparkConfig:
 
-        packages = DEFAULT_VERSIONS.copy()
-        del packages['hadoop']
+        packages = DEFAULT_PACKAGES.copy()
+        Templates._drop_package(packages, 'hadoop')
 
         if not with_delta:
-            del packages['delta']
+            Templates._drop_package(packages, 'delta')
 
-        driver = DriverConfig('local')
+        driver = DriverConfig('localhost')
 
         config = SimpleSparkConfig(
             name=name,
+            simplespark_home=simplespark_home,
+            bash_profile_file=bash_profile_file,
             setup_type='local',
             packages=packages,
             driver=driver
@@ -56,13 +63,13 @@ class Templates:
         return config
 
     @staticmethod
-    def _generate_standalone(kwargs: dict[str, Any]) -> SimpleSparkConfig:
+    def generate_standalone(kwargs: dict[str, Any]) -> SimpleSparkConfig:
 
         name = kwargs['name']
         simple_home = kwargs['simple_home']
-        profile_path = kwargs['profile_path']
+        bash_profile_file = kwargs['bash_profile_file']
 
-        packages = DEFAULT_VERSIONS.copy()
+        packages = DEFAULT_PACKAGES.copy()
         del packages['hadoop']
 
         env = SimpleSparkConfig(name, 'standalone', packages, **kwargs)
@@ -72,12 +79,18 @@ class Templates:
         return env
 
     @staticmethod
+    def _drop_package(packages: list[PackageConfig], package_name: str):
+        for pc in packages.copy():
+            if pc.name == package_name:
+                packages.remove(pc)
+
+    @staticmethod
     def _update_kwargs_metastore(kwargs: dict[str, Any]) -> SimpleSparkConfig:
 
         name = kwargs['name']
         with_delta = kwargs.get('with_delta', False)
 
-        packages = DEFAULT_VERSIONS.copy()
+        packages = DEFAULT_PACKAGES.copy()
         del packages['hadoop']
         if not with_delta:
             del packages['delta']
@@ -87,5 +100,3 @@ class Templates:
         env = SimpleSparkConfig(name, packages, driver)
 
         return env
-
-

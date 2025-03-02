@@ -1,3 +1,4 @@
+import os.path
 from abc import ABC, abstractmethod
 
 from simplespark.environment.config import SimpleSparkConfig
@@ -20,6 +21,8 @@ class Builder(ABC):
 
         for task in tasks:
             print(f'Starting build task: {task.name()}')
+            task.run(self.config)
+
 
     @abstractmethod
     def _generate_build_tasks(self) -> list[BuildTask]:
@@ -27,10 +30,10 @@ class Builder(ABC):
 
     def _generate_core_tasks(self) -> list[BuildTask]:
         tasks = [
-            PrepareConfigFiles(self.host),
             SetupJavaBin('java'),
             SetupJavaBin('scala'),
-            SetupJavaBin('spark')
+            SetupJavaBin('spark'),
+            PrepareConfigFiles(self.host)
         ]
         return tasks
 
@@ -95,6 +98,29 @@ class StandaloneWorkerBuilder(Builder):
         return tasks
 
 
+def build_home(config: SimpleSparkConfig):
+
+    if not os.path.exists(config.simplespark_home):
+        print(f'Creating simplespark home directory {config.simplespark_home}')
+        os.makedirs(config.simplespark_home)
+
+    if not os.path.exists(config.activate_script_directory):
+        print(f'Creating activate script directory {config.activate_script_directory}')
+        os.makedirs(config.activate_script_directory)
+
+    if not os.path.isdir(config.simplespark_config_directory):
+        print(f'Creating simplespark config directory {config.simplespark_config_directory}')
+        os.makedirs(config.simplespark_config_directory)
+
+    if not os.path.isdir(config.simplespark_libs_directory):
+        print(f'Creating simplespark libs directory {config.simplespark_libs_directory}')
+        os.makedirs(config.simplespark_libs_directory)
+
+    with open(config.bash_profile_file, 'a') as f:
+        f.write(f"\nexport SIMPLESPARK_HOME={config.simplespark_home}")
+        f.write(f"\nexport PATH=$PATH:{config.simplespark_home}/activate")
+
+
 def build_worker(config: SimpleSparkConfig, host: str):
 
     if config.setup_type == 'standalone':
@@ -108,15 +134,15 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     ssh = SSHUtils(host)
 
     # Make SIMPLE_SPARK_HOME directory for copying over files
-    ssh.create_directory(config.simple_home)
+    ssh.create_directory(config.simplespark_home)
 
     # Copy over config json from driver to worker
-    ssh.create_directory(f'{config.simple_home}/config')
-    config_file_path = f'{config.simple_home}/config/{config.name}.json'
+    ssh.create_directory(f'{config.simplespark_home}/config')
+    config_file_path = f'{config.simplespark_home}/config/{config.name}.json'
     ssh.copy(config_file_path, config_file_path)
 
     # Copy over packages from driver to worker
-    ssh.create_directory(config.libs_directory)
+    ssh.create_directory(config.simplespark_libs_directory)
     for package in config.packages:
         package_directory = config.get_package_home_directory(package.name)
         print(f'Copying over {package} to {package_directory}')
