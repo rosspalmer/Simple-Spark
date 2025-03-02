@@ -1,4 +1,5 @@
 import shutil
+import socket
 from abc import ABC, abstractmethod
 import os
 import tarfile
@@ -131,7 +132,13 @@ class SetupDriver(BuildTask):
 
         print(f"Setup driver config at {config.spark_config_path}")
 
-        with open(config.spark_config_path, 'a') as spark_config_file:
+        with open(config.spark_config_path, 'w') as spark_config_file:
+
+            if config.driver.host == 'localhost':
+                local_master_url = f"spark://{socket.gethostname()}:7077"
+            else:
+                local_master_url = f"spark://{config.driver.host}:7077"
+            spark_config_file.write(f"spark.master={local_master_url}\n")
 
             if config.driver and config.driver.cores:
                 spark_config_file.write(f"spark.driver.cores {config.driver.cores}\n")
