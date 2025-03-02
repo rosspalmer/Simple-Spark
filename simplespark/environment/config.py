@@ -128,6 +128,17 @@ class SimpleSparkConfig:
         return json_string
 
     @staticmethod
+    def get_simplespark_config(environment_name: str):
+
+        simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
+        if simplespark_home is None:
+            raise Exception("SIMPLESPARK_HOME environment variable not set, need to run `build` first")
+
+        config = SimpleSparkConfig.read(f"{simplespark_home}/config/{environment_name}.json")
+
+        return config
+
+    @staticmethod
     def get_field_deserializers() -> Dict[str, callable]:
 
         # Write deserializers as lambdas to not require all fields to be defined
@@ -197,9 +208,6 @@ class SimpleSparkConfig:
     @property
     def spark_jars_path(self) -> str:
         return f"{self.spark_home}/jars"
-
-    def activate_environment(self):
-        os.system(f"source {self.activate_script_path}")
 
     def get_package_config(self, package: str) -> PackageConfig:
         if not self.has_package(package):

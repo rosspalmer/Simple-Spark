@@ -1,4 +1,5 @@
 import os
+import socket
 
 import typer
 
@@ -7,19 +8,6 @@ from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.templates import Templates
 
 app = typer.Typer()
-
-
-@app.command()
-def activate(environment: str):
-
-    simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
-    if simplespark_home is None:
-        raise Exception("SIMPLESPARK_HOME environment variable not set, need to run `build` first")
-
-    activate_script_path = f"{simplespark_home}/activate/{environment}.sh"
-
-    if not os.path.exists(activate_script_path):
-        raise Exception(f"Activation script not found, need to run `build` first: {activate_script_path}")
 
 
 @app.command()
@@ -56,15 +44,25 @@ def worker(simplespark_config_path: str, worker_host: str):
 
 
 @app.command()
-def start(environment: str):
-    activate(environment)
-    os.system(f'sh $SPARK_HOME/sbin/start-all.sh')
+def start(name: str):
+    config = SimpleSparkConfig.get_simplespark_config(name)
+    if config.setup_type == 'local':
+        local_hostname = socket.gethostname()
+        os.system("bash $SPARK_HOME/sbin/start-master.sh")
+        os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://{local_hostname}:7077")
+        print(f"Spark Cluster UI: http://localhost:8080")
+    else:
+        os.system("bash $SPARK_HOME/sbin/start-all.sh")
 
 
 @app.command()
-def stop(environment: str):
-    activate(environment)
-    os.system(f'sh $SPARK_HOME/sbin/stop-all.sh')
+def stop(name: str):
+    config = SimpleSparkConfig.get_simplespark_config(name)
+    if config.setup_type == 'local':
+        os.system("bash $SPARK_HOME/sbin/stop-master.sh")
+        os.system("bash $SPARK_HOME/sbin/stop-worker.sh localhost")
+    else:
+        os.system("bash $SPARK_HOME/sbin/stop-all.sh")
 
 
 @app.command()
