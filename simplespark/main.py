@@ -46,7 +46,7 @@ def worker(simplespark_config_path: str, worker_host: str):
 @app.command()
 def start(name: str):
     config = SimpleSparkConfig.get_simplespark_config(name)
-    if config.setup_type == 'local':
+    if config.mode == 'local':
         local_hostname = socket.gethostname()
         os.system("bash $SPARK_HOME/sbin/start-master.sh")
         os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://{local_hostname}:7077")
@@ -58,7 +58,7 @@ def start(name: str):
 @app.command()
 def stop(name: str):
     config = SimpleSparkConfig.get_simplespark_config(name)
-    if config.setup_type == 'local':
+    if config.mode == 'local':
         os.system("bash $SPARK_HOME/sbin/stop-master.sh")
         os.system("bash $SPARK_HOME/sbin/stop-worker.sh localhost")
     else:

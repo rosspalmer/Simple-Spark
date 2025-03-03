@@ -107,7 +107,7 @@ class SimpleSparkConfig:
     name: str
     simplespark_home: str
     bash_profile_file: str
-    setup_type: str
+    mode: str
     packages: List[PackageConfig]
     driver: DriverConfig
     derby_path: str = None

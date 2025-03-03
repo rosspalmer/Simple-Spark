@@ -55,7 +55,7 @@ class Templates:
             name=name,
             simplespark_home=simplespark_home,
             bash_profile_file=bash_profile_file,
-            setup_type='local',
+            mode='local',
             packages=packages,
             driver=driver
         )

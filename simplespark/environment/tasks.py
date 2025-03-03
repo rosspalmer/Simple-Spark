@@ -157,7 +157,7 @@ class SetupDriver(BuildTask):
                 spark_config_file.write(f"spark.sql.warehouse.dir {config.warehouse_path}\n")
 
             # Add `conf/workers` file if running in standalone mode
-            if config.setup_type == 'standalone':
+            if config.mode == 'standalone':
 
                 workers_file_path = f'{config.spark_config_path}/workers'
 

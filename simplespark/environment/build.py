@@ -123,10 +123,10 @@ def build_home(config: SimpleSparkConfig):
 
 def build_worker(config: SimpleSparkConfig, host: str):
 
-    if config.setup_type == 'standalone':
+    if config.mode == 'standalone':
         StandaloneWorkerBuilder(config, host).run()
     else:
-        raise RuntimeError(f'Unsupported setup_type: {config.setup_type}')
+        raise RuntimeError(f'Unsupported setup_type: {config.mode}')
 
 
 def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
@@ -155,11 +155,11 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
 def build_environment(config: SimpleSparkConfig):
 
-    if config.setup_type == 'local':
+    if config.mode == 'local':
         builder = LocalBuilder(config, 'localhost')
         builder.run()
 
-    elif config.setup_type == 'standalone':
+    elif config.mode == 'standalone':
 
         print(f'Building driver: {config.driver.host}')
         builder = StandaloneDriverBuilder(config, config.driver.host)
@@ -174,4 +174,4 @@ def build_environment(config: SimpleSparkConfig):
 
     else:
 
-        raise Exception(f'Unknown setup type: {config.setup_type}')
+        raise Exception(f'Unknown setup type: {config.mode}')
