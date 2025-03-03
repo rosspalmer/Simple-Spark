@@ -68,7 +68,7 @@ def stop(name: str):
 @app.command()
 def template(template_type: str, write_path: str):
 
-    print(f'Create template type: {template_type} and write to path: {write_path}')
+    print(f'Create {template_type} template and write to path: {write_path}')
 
     template_config = Templates.generate(template_type)
     template_config.write(write_path)

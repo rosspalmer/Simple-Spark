@@ -63,40 +63,50 @@ class Templates:
         return config
 
     @staticmethod
-    def generate_standalone(kwargs: dict[str, Any]) -> SimpleSparkConfig:
-
-        name = kwargs['name']
-        simple_home = kwargs['simple_home']
-        bash_profile_file = kwargs['bash_profile_file']
+    def generate_standalone(name: str, simplespark_home: str, bash_profile_file: str,
+                            with_delta: bool = False) -> SimpleSparkConfig:
 
         packages = DEFAULT_PACKAGES.copy()
-        del packages['hadoop']
+        Templates._drop_package(packages, 'hadoop')
 
-        env = SimpleSparkConfig(name, 'standalone', packages, **kwargs)
+        if not with_delta:
+            Templates._drop_package(packages, 'delta')
 
-        driver = kwargs['driver']
+        driver = DriverConfig(
+            host='<DRIVER-HOST>',
+            cores=4,
+            memory='<DRIVER-MEMORY-SIZE>'
+        )
 
-        return env
+        workers = [
+            WorkerConfig(
+                host='<WORKER-A-HOST>',
+                cores=4,
+                memory='<WORKER-A-MEMORY-SIZE>',
+                instances=2
+            ),
+            WorkerConfig(
+                host='<WORKER-B-HOST>',
+                cores=4,
+                memory='<WORKER-B-MEMORY-SIZE>',
+                instances=8
+            ),
+        ]
+
+        config = SimpleSparkConfig(
+            name,
+            simplespark_home,
+            bash_profile_file,
+            'standalone',
+            packages,
+            driver,
+            workers=workers
+        )
+
+        return config
 
     @staticmethod
     def _drop_package(packages: list[PackageConfig], package_name: str):
         for pc in packages.copy():
             if pc.name == package_name:
                 packages.remove(pc)
-
-    @staticmethod
-    def _update_kwargs_metastore(kwargs: dict[str, Any]) -> SimpleSparkConfig:
-
-        name = kwargs['name']
-        with_delta = kwargs.get('with_delta', False)
-
-        packages = DEFAULT_PACKAGES.copy()
-        del packages['hadoop']
-        if not with_delta:
-            del packages['delta']
-
-        driver = kwargs['driver']
-
-        env = SimpleSparkConfig(name, packages, driver)
-
-        return env
