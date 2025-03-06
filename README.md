@@ -20,12 +20,17 @@ Open source data platform for managing Apache Spark resources and job orchestrat
 
 **Modes**
 
-| Mode       | Description | Complete |
-|------------|-------------|----------|
-| local      |             | YES      |
-| standalone |             | YES      |
-| yarn       |             | NO       |
+- `local`: Single node cluster setup on local machine
+- `standalone`: Multi node cluster using Spark's [standalone setup](https://spark.apache.org/docs/latest/spark-standalone.html)
+- `yarn`: Multi node cluster built using [Hadoop YARN setup](https://spark.apache.org/docs/latest/running-on-yarn.html) _(in development)_
+- `kubernetes`: Multi node cluster built [Kubernetes setup](https://spark.apache.org/docs/latest/running-on-kubernetes.html) (In development)
 
+**Services**
+
+- Cluster manager: Start/stop clusters, Spark UI for cluster
+- Metastore: Central SQL server managing HIVE metastore _(in development)_
+- Job orchestrator: Job scheduler via cron _(in development)_
+- History server: SparkUI for past runs _(in development)_
 
 ## Quick Start Guide
 
@@ -33,18 +38,6 @@ Once installed, the `simplespark` command can be used to
 create and switch between different Spark environments. 
 Each environment contains a single cluster and a collection
 of resources to run on the cluster.
-
-The following are general steps for using an environment:
-
-1. Define environment using JSON/YAML file
-   - Generate template for specific `mode` 
-2. Import configuration into `SIMPLESPARK_HOME` directory
-   - Create environment activation script
-   - Download and prepare required libraries
-3. Activate environment to point specific resources
-4. Start environment to spin up cluster and services
-5. Run jobs (TODO)
-
 
 ### Install
 
@@ -54,16 +47,36 @@ The CLI tool is hosted on PyPi and can be installed using `pip`
 pip install simplespark
 ```
 
-### Define Configuration
+### Create Configuration
 
-The configuration for a
+The configuration can be expressed in a single JSON file or
+be defined in multiple files which are merged on import.
 
-#### MODE: local
+Each `mode` will require different configuration proprieties
+to be defined and within each mode there are optional settings
+for specific add ins.
 
-The `local` mode will create a standalone "cluster" on a single
-machine which can be used for local development. The "cluster" 
-remains active between executions mirroring the environment
-for a cluster on `standalone` mode.
+#### Templates
+
+The easiest way to start is to create a template for the 
+specific mode by running the command below:
+
+```bash
+simplespark template <mode> <file-path>
+```
+
+#### Required Properties
+
+For all configurations, the following proprieties must be defined.
+
+- `name`: Identifier of simplespark "environment"
+- `simplespark_home`: Full path to directory used by simplespark to:
+  - Store environment configurations
+  - Store any required libraries
+  - Store any scripts or custom modifications
+- `bash_profile_file`: Full path to bash profile file used to set `SIMPLESPARK_HOME` environment variable
+- `packages`: TODO
+- `driver`: TODO
 
 ### Import Configuration
 
@@ -71,11 +84,35 @@ TODO
 
 ### Activate Environment
 
-TODO
+Activating a specific environment sets the `JAVA/SCALA/SPARK_HOME` variables
+for a shell session to point to that environment, as well as any other 
+required setup.
+
+This is done by calling an "activation" script generated in the import step:
+
+`source <environment-name>.sh`
+
+The environment will only be activated for the session in which this command
+called so that it is possible to interact with multiple environments at once.
+
+The following native Spark commands will automatically connect
+to the activated environment:
+
+- `spark-shell`
+- `spark-submit`
+- `pyspark`
+- `spark-sql`
 
 ### Start/Stop Clusters
 
-TODO
+A cluster can be started / stopped by running the command below.
+Once started, a cluster will stay up until stopped, even if a 
+user switches to another environment.
+
+```bash
+simplespark start <environment-name>
+simplespark stop <environment-name>
+```
 
 
 
