@@ -20,7 +20,7 @@ class PackageConfig:
     def package_file_name(self) -> str:
 
         NAME_MAP = {
-            'java': f'OpenJDK11U-jdk_x64_linux_hotspot_{self.version.replace('+', '_')}.tar.gz',
+            "java": f"OpenJDK11U-jdk_x64_linux_hotspot_{self.version.replace('+', '_')}.tar.gz",
             "scala": f"scala-{self.version}.tgz",
             "spark": f"spark-{self.version}-bin-hadoop3.tgz"
         }
