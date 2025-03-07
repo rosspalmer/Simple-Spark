@@ -150,7 +150,7 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     # TODO Only run if install is needed
     debug = ssh.run(f'pip install simplespark')
-    debug = ssh.run(f'simplespark build {config.name} {host}')
+    debug = ssh.run(f'simplespark worker {config.name} {host}')
 
 
 def build_environment(config: SimpleSparkConfig):

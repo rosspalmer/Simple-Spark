@@ -50,9 +50,10 @@ def start(name: str):
         local_hostname = socket.gethostname()
         os.system("bash $SPARK_HOME/sbin/start-master.sh")
         os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://{local_hostname}:7077")
-        print(f"Spark Cluster UI: http://localhost:8080")
     else:
         os.system("bash $SPARK_HOME/sbin/start-all.sh")
+
+    print(f"Spark Cluster UI: http://{config.driver.host}:8080")
 
 
 @app.command()
