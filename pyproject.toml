@@ -1,6 +1,6 @@
 [project]
 name = "simplespark"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
   {name="Ross Palmer", email="rossbpalmer@gmail.com"}
 ]
@@ -15,9 +15,10 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.14"
 typer = "^0.15.1"
 paramiko = "3.5.1"
+pyinstaller = "6.12.0"
 
 [tool.poetry.scripts]
 simplespark = "simplespark.main:app"
