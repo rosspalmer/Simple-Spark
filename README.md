@@ -2,6 +2,8 @@
 
 Open source data platform for managing Apache Spark resources and job orchestration.
 
+**NOTE: Still working on initial release**
+
 ## Project Goals
 
 1. Provide a single CLI tool to perform all functions:
@@ -39,12 +41,28 @@ create and switch between different Spark environments.
 Each environment contains a single cluster and a collection
 of resources to run on the cluster.
 
-### Install
+### Install `simplespark`
 
-The CLI tool is hosted on PyPi and can be installed using `pip`
+The `simplespark` library is written in Python and can be
+installed in two different ways:
+
+#### A: Python Library
+
+For machines with Python already installed, use `pip` to install
+both the Python module and the CLI tool.
 
 ```bash
 pip install simplespark
+```
+
+#### B: Binary Executable
+
+For machines without Python (workers for example), you can 
+install the CLI as a binary executable.
+
+```bash
+wget TODO
+echo "export PATH=$PATH:/<bin-folder>" >> ~/.bashrc
 ```
 
 ### Create Configuration
@@ -113,6 +131,3 @@ user switches to another environment.
 simplespark start <environment-name>
 simplespark stop <environment-name>
 ```
-
-
-

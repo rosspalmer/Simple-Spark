@@ -55,6 +55,14 @@ def start(name: str):
 
     print(f"Spark Cluster UI: http://{config.driver.host}:8080")
 
+    if config.driver.connect_server:
+        os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
+        print(f"Started Spark Connect server on {config.driver.host}")
+
+    if config.driver.thrift_server:
+        os.system("bash $SPARK_HOME/sbin/start-thriftserver.sh")
+        print(f"Started JDBC/ODBC Thrift server on {config.driver.host}")
+
 
 @app.command()
 def stop(name: str):
@@ -64,6 +72,14 @@ def stop(name: str):
         os.system("bash $SPARK_HOME/sbin/stop-worker.sh localhost")
     else:
         os.system("bash $SPARK_HOME/sbin/stop-all.sh")
+
+    if config.driver.connect_server:
+        os.system("bash $SPARK_HOME/sbin/stop-connect-server.sh")
+        print(f"Stopped Spark Connect server on {config.driver.host}")
+
+    if config.driver.thrift_server:
+        os.system("bash $SPARK_HOME/sbin/stop-thriftserver.sh")
+        print(f"Stopped JDBC/ODBC Thrift server on {config.driver.host}")
 
 
 @app.command()

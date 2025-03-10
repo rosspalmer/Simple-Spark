@@ -9,6 +9,9 @@ class DriverConfig:
     host: str
     cores: int = None
     memory: str = None
+    connect_server: bool = False
+    # history_server: bool = False
+    thrift_server: bool = False
 
 
 @dataclass
