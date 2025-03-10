@@ -30,20 +30,6 @@ def build(config_paths: str):
 
 
 @app.command()
-def worker(simplespark_config_path: str, worker_host: str):
-
-    config = SimpleSparkConfig.read(simplespark_config_path)
-
-    simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
-    if config.simplespark_home != simplespark_home:
-        print(f'Setting up new SIMPLESPARK_HOME directory {config.simplespark_home}')
-        build_home(config)
-
-    print(f'Setup simplespark environment on worker {worker_host}')
-    build_worker(config, worker_host)
-
-
-@app.command()
 def start(name: str):
     config = SimpleSparkConfig.get_simplespark_config(name)
     if config.mode == 'local':
@@ -89,3 +75,17 @@ def template(template_type: str, write_path: str):
 
     template_config = Templates.generate(template_type)
     template_config.write(write_path)
+
+
+@app.command()
+def worker(simplespark_config_path: str, worker_host: str):
+
+    config = SimpleSparkConfig.read(simplespark_config_path)
+
+    simplespark_home = os.environ.get("SIMPLESPARK_HOME", None)
+    if config.simplespark_home != simplespark_home:
+        print(f'Setting up new SIMPLESPARK_HOME directory {config.simplespark_home}')
+        build_home(config)
+
+    print(f'Setup simplespark environment on worker {worker_host}')
+    build_worker(config, worker_host)
