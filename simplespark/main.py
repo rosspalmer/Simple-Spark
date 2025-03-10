@@ -6,6 +6,7 @@ import typer
 from simplespark.environment.build import build_environment, build_worker, build_home
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.templates import Templates
+from simplespark.utils.shell import ShellManager
 
 app = typer.Typer()
 
@@ -27,6 +28,23 @@ def build(config_paths: str):
     build_environment(config)
 
     print(f'Run `source {config.name}` to activate environment')
+
+
+@app.command()
+def run(name: str, code_directory: str, main_file: str):
+
+    config = SimpleSparkConfig.get_simplespark_config(name)
+    shell = ShellManager(config)
+
+    code_name = code_directory.split("/")[-1]
+    code_destination = f"{config.simplespark_home}/archive/{code_name}.zip"
+
+    print(f"Packaging code at {code_directory}")
+    print(f"Copying code to {code_destination}")
+    shell.archive_and_copy(code_directory, code_destination)
+
+    print("Running file {main_file}")
+    shell.spark_submit_python(main_file, code_destination)
 
 
 @app.command()
