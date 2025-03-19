@@ -8,7 +8,6 @@ from urllib.request import urlretrieve
 
 from simplespark.environment.config import SimpleSparkConfig, JdbcConfig, WorkerConfig
 from simplespark.utils.maven import MavenDownloader
-from simplespark.utils.ssh import SSHUtils
 
 
 class BuildTask(ABC):
@@ -21,14 +20,6 @@ class BuildTask(ABC):
     def run(self, config: SimpleSparkConfig):
         pass
 
-
-class SetupHome(BuildTask):
-
-    def name(self) -> str:
-        return "setup-home"
-
-    def run(self, config: SimpleSparkConfig):
-        pass
 
 class SetupJavaBin(BuildTask):
 
@@ -271,25 +262,3 @@ class SetupActivateScript(BuildTask):
 
             # Add additions to PATH variable by merging into single `export` command
             f.write(f"\nexport PATH=$PATH:{':'.join(new_path_additions)}")
-
-
-class SetupWorkerViaSSH(BuildTask):
-
-    def __init__(self, host: str):
-        self.host = host
-
-    def name(self) -> str:
-        return "setup-worker-via-ssh"
-
-    def run(self, config: SimpleSparkConfig):
-
-        ssh = SSHUtils(self.host)
-
-        # Copy over packages from driver to worker
-        for package in config.packages:
-            package_directory = config.get_package_home_directory(package.name)
-            ssh.copy_directory(package_directory, package_directory)
-
-        # TODO Only run if install is needed
-        debug = ssh.run(f'pip install simplespark')
-        debug = ssh.run(f'simplespark build {self.host}')

@@ -189,6 +189,10 @@ class SimpleSparkConfig:
         return f"{self.spark_home}/conf/hive-site.xml"
 
     @property
+    def simplespark_bin_directory(self) -> str:
+        return f"{self.simplespark_home}/config"
+
+    @property
     def simplespark_config_directory(self) -> str:
         return f"{self.simplespark_home}/config"
 

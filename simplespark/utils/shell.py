@@ -19,12 +19,17 @@ class CommandReturn:
 
 class ShellManager:
 
-    def __init__(self, config: SimpleSparkConfig) -> None:
+    def __init__(self, config: SimpleSparkConfig, host: str = '') -> None:
         self.config = config
+        self.host = host
 
         self.ssh = None
         if self.config.mode != "local":
-            self.ssh = SSHUtils(config.driver.host)
+            if host == '':
+                self.ssh = SSHUtils(config.driver.host)
+            else:
+                self.ssh = SSHUtils(host)
+
 
     def run_command(self, command: str) -> CommandReturn:
 

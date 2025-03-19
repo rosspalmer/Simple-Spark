@@ -4,7 +4,7 @@ from simplespark.environment.config import *
 DEFAULT_PACKAGES = [
     PackageConfig("java", "11.0.21+9"),
     PackageConfig("scala", "2.12.18"),
-    PackageConfig("spark", "3.5.2"),
+    PackageConfig("spark", "3.5.5"),
     PackageConfig("delta", "3.2.0"),
     PackageConfig("hadoop", "3.3.1"),
     PackageConfig("hive", "3.1.2")

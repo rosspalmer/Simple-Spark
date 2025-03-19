@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.tasks import (
     BuildTask, SetupWorker, SetupDriver, SetupJavaBin, PrepareConfigFiles,
-    ConnectToHiveMetastore, SetupDelta, SetupActivateScript
+    ConnectToHiveMetastore, SetupDelta, SetupActivateScript, SetupStandaloneDriver
 )
 from simplespark.utils.ssh import SSHUtils
 
@@ -76,7 +76,7 @@ class StandaloneDriverBuilder(Builder):
     def _generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
-        tasks.append(SetupDriver())
+        tasks.append(SetupStandaloneDriver())
 
         tasks.extend(self._generate_optional_tasks())
         tasks.append(SetupActivateScript())
@@ -108,6 +108,10 @@ def build_home(config: SimpleSparkConfig):
         print(f'Creating activate script directory {config.activate_script_directory}')
         os.makedirs(config.activate_script_directory)
 
+    if not os.path.exists(config.simplespark_bin_directory):
+        print(f'Creating bin directory {config.simplespark_bin_directory}')
+        os.makedirs(config.simplespark_bin_directory)
+
     if not os.path.isdir(config.simplespark_config_directory):
         print(f'Creating simplespark config directory {config.simplespark_config_directory}')
         os.makedirs(config.simplespark_config_directory)
@@ -133,8 +137,13 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     ssh = SSHUtils(host)
 
-    # Make SIMPLE_SPARK_HOME directory for copying over files
+    # Make SIMPLESPARK_HOME directory for copying over files
     ssh.create_directory(config.simplespark_home)
+
+    # Make binary directory and download simplespark binary
+    binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/FIXME"
+    ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
+    simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
 
     # Copy over config json from driver to worker
     ssh.create_directory(f'{config.simplespark_home}/config')
@@ -148,9 +157,8 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
         print(f'Copying over {package} to {package_directory}')
         ssh.copy_directory(package_directory, package_directory)
 
-    # TODO Only run if install is needed
-    debug = ssh.run(f'pip install simplespark')
-    debug = ssh.run(f'simplespark worker {config.name} {host}')
+    # Run build `worker` command on machine
+    debug = ssh.run(f'{simplespark_binary_call} worker {config.name} {host}')
 
 
 def build_environment(config: SimpleSparkConfig):

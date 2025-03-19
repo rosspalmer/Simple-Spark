@@ -34,8 +34,11 @@ def build(config_paths: str):
 def run(name: str, code_directory: str, main_file: str):
 
     config = SimpleSparkConfig.get_simplespark_config(name)
+
+    # Use ShellManager to either run locally or remotely depending on config
     shell = ShellManager(config)
 
+    # Identify name of code directory using folder name
     code_name = code_directory.split("/")[-1]
     code_destination = f"{config.simplespark_home}/archive/{code_name}.zip"
 
@@ -43,7 +46,7 @@ def run(name: str, code_directory: str, main_file: str):
     print(f"Copying code to {code_destination}")
     shell.archive_and_copy(code_directory, code_destination)
 
-    print("Running file {main_file}")
+    print(f"Running file {main_file}")
     shell.spark_submit_python(main_file, code_destination)
 
 
