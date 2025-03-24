@@ -158,7 +158,8 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     ssh.create_directory(config.simplespark_home)
 
     # Make binary directory and download simplespark binary
-    binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/FIXME"
+    # FIXME need to make link dynamic, not hardcoded
+    binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/v0.2.3/simplespark_v0.2.3.tar.gz"
     ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
     simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
 

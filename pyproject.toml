@@ -1,6 +1,6 @@
 [project]
 name = "simplespark"
-version = "0.2.2-alpha"
+version = "0.2.3"
 authors = [
   {name="Ross Palmer", email="rossbpalmer@gmail.com"}
 ]
