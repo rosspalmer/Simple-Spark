@@ -154,10 +154,9 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     ssh = SSHUtils(host)
 
-    stdin, stdout, stderr = ssh.run('echo "HELLO WORLD"')
-    print(stdin)
-    print(stdout)
-    print(stderr)
+    stdin, stdout, stderr = ssh.run('echo "HELLO WORLD"; ls')
+    print(stdout.readlines())
+    print(stderr.readlines())
 
     # Make SIMPLESPARK_HOME directory for copying over files
     ssh.create_directory(config.simplespark_home)
