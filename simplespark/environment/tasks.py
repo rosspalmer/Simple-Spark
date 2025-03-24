@@ -155,7 +155,7 @@ class SetupDriver(BuildTask):
             # Add `conf/workers` file if running in standalone mode
             if config.mode == 'standalone':
 
-                workers_file_path = f'{config.spark_conf_file_path}/workers'
+                workers_file_path = f'{config.spark_conf_directory}/workers'
 
                 with open(workers_file_path, "w") as wf:
                     print(f'Creating {workers_file_path} file')
