@@ -5,13 +5,14 @@ from paramiko.client import SSHClient
 
 class SSHUtils:
 
-    def __init__(self, host: str, port: int = 22):
+    def __init__(self, host: str, port: int = 22, username: str = None):
         self.host = host
         self.port = port
+        self.username = username
 
         self.ssh = SSHClient()
         self.ssh.load_system_host_keys()
-        self.ssh.connect(self.host, port=self.port)
+        self.ssh.connect(self.host, port=self.port, username=self.username)
         self.sftp = self.ssh.open_sftp()
 
     @staticmethod
