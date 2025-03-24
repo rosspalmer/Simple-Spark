@@ -251,7 +251,8 @@ class SetupActivateScript(BuildTask):
             "JAVA_HOME": config.get_package_home_directory('java'),
             "SCALA_HOME": config.get_package_home_directory('scala'),
             "SPARK_HOME": config.get_package_home_directory('spark'),
-            "SPARK_CONF_DIR": config.spark_conf_directory
+            "SPARK_CONF_DIR": config.spark_conf_directory,
+            "SIMPLESPARK_ENVIRONMENT_NAME": config.name
         }
         new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
 

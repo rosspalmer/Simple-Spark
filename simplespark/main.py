@@ -39,7 +39,8 @@ def build(config_paths: str):
     print(f"Note: May need to run `source {config.bash_profile_file}` first to update environment variables")
 
 
-@app.command()
+# FIXME implement after bug fixes
+# @app.command()
 def run(name: str, code_directory: str, main_file: str):
 
     config = SimpleSparkConfig.get_simplespark_config(name)
@@ -60,16 +61,19 @@ def run(name: str, code_directory: str, main_file: str):
 
 
 @app.command()
-def start(name: str):
-    config = SimpleSparkConfig.get_simplespark_config(name)
+def start():
+
+    environment_name = os.environ.get("SIMPLESPARK_ENVIRONMENT_NAME", None)
+    if environment_name is None:
+        raise Exception("Environment not activated, activate environment using `source <name>.env`")
+    config = SimpleSparkConfig.get_simplespark_config(environment_name)
+
     if config.mode == 'local':
-        local_hostname = socket.gethostname()
         os.system("bash $SPARK_HOME/sbin/start-master.sh")
-        os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://{local_hostname}:7077")
+        os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://localhost:7077")
+
     else:
         os.system("bash $SPARK_HOME/sbin/start-all.sh")
-
-    print(f"Spark Cluster UI: http://{config.driver.host}:8080")
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
@@ -81,8 +85,13 @@ def start(name: str):
 
 
 @app.command()
-def stop(name: str):
-    config = SimpleSparkConfig.get_simplespark_config(name)
+def stop():
+
+    environment_name = os.environ.get("SIMPLESPARK_ENVIRONMENT_NAME", None)
+    if environment_name is None:
+        raise Exception("Environment not activated, activate environment using `source <name>.env`")
+    config = SimpleSparkConfig.get_simplespark_config(environment_name)
+
     if config.mode == 'local':
         os.system("bash $SPARK_HOME/sbin/stop-master.sh")
         os.system("bash $SPARK_HOME/sbin/stop-worker.sh localhost")

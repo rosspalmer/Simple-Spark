@@ -138,7 +138,7 @@ class SimpleSparkConfig:
         if simplespark_home is None:
             raise Exception("SIMPLESPARK_HOME environment variable not set, need to run `build` first")
 
-        config = SimpleSparkConfig.read(f"{simplespark_home}/config/{environment_name}.json")
+        config = SimpleSparkConfig.read(f"{simplespark_home}/environments/{environment_name}/{environment_name}.json")
 
         return config
 
