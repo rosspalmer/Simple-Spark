@@ -22,12 +22,21 @@ def build(config_paths: str):
         print('Setting up new SIMPLESPARK_HOME directory')
         build_home(config)
 
-    config.write(f'{config.simplespark_home}/config/{config.name}.json')
+    environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
+    if not os.path.exists(environment_directory):
+        print(f"Creating environment directory: {environment_directory}")
+        os.mkdir(environment_directory)
+        print(f"Creating environment conf directory: {config.spark_conf_directory}")
+        os.mkdir(config.spark_conf_directory)
+
+    simplespark_config_path = f"{config.simplespark_environment_directory}/{config.name}/{config.name}.json"
+    config.write(simplespark_config_path)
 
     print('Setup simplespark environment')
     build_environment(config)
 
-    print(f'Run `source {config.name}` to activate environment')
+    print(f"Run `source {config.name}.env` to activate environment")
+    print(f"Note: May need to run `source {config.bash_profile_file}` first to update environment variables")
 
 
 @app.command()

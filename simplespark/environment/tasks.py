@@ -77,6 +77,11 @@ class PrepareConfigFiles(BuildTask):
 
     def run(self, config: SimpleSparkConfig):
 
+        environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
+        if not os.path.exists(environment_directory):
+            print(f"Creating environment directory: {environment_directory}")
+            os.mkdir(environment_directory)
+
         print(f"Setup spark-env.sh bash script at {config.spark_env_sh_path}")
         with open(config.spark_env_sh_path, 'w') as env_sh_file:
 
@@ -107,7 +112,7 @@ class SetupDelta(BuildTask):
         print("Adding Delta libraries to spark_defaults.conf file")
 
         # TODO overwrite delta configs instead of appending
-        with open(config.spark_config_path, 'a') as spark_config_file:
+        with open(config.spark_conf_file_path, 'a') as spark_config_file:
             spark_config_file \
                 .write(f"spark.jars.packages io.delta:delta-spark_2.12:{config.get_package_version('delta')}\n")
             spark_config_file.write("spark.sql.extensions io.delta.sql.DeltaSparkSessionExtension\n")
@@ -121,9 +126,9 @@ class SetupDriver(BuildTask):
 
     def run(self, config: SimpleSparkConfig):
 
-        print(f"Setup driver config at {config.spark_config_path}")
+        print(f"Setup driver config at {config.spark_conf_file_path}")
 
-        with open(config.spark_config_path, 'w') as spark_config_file:
+        with open(config.spark_conf_file_path, 'w') as spark_config_file:
 
             if config.driver.host == 'localhost':
                 local_master_url = f"spark://{socket.gethostname()}:7077"
@@ -150,7 +155,7 @@ class SetupDriver(BuildTask):
             # Add `conf/workers` file if running in standalone mode
             if config.mode == 'standalone':
 
-                workers_file_path = f'{config.spark_config_path}/workers'
+                workers_file_path = f'{config.spark_conf_file_path}/workers'
 
                 with open(workers_file_path, "w") as wf:
                     print(f'Creating {workers_file_path} file')
@@ -245,14 +250,10 @@ class SetupActivateScript(BuildTask):
         new_env_variables = {
             "JAVA_HOME": config.get_package_home_directory('java'),
             "SCALA_HOME": config.get_package_home_directory('scala'),
-            "SPARK_HOME": config.get_package_home_directory('spark')
+            "SPARK_HOME": config.get_package_home_directory('spark'),
+            "SPARK_CONF_DIR": config.spark_conf_directory
         }
         new_path_additions = ["$JAVA_HOME/bin", "$SCALA_HOME/bin", "$SPARK_HOME/bin"]
-
-        if not os.path.exists(config.activate_script_directory):
-            print("Activate script directory does not exist")
-            print(f"Creating: {config.activate_script_directory}")
-            os.mkdir(config.activate_script_directory)
 
         with open(config.activate_script_path, 'w') as f:
 

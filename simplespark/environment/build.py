@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.tasks import (
     BuildTask, SetupWorker, SetupDriver, SetupJavaBin, PrepareConfigFiles,
-    ConnectToHiveMetastore, SetupDelta, SetupActivateScript, SetupStandaloneDriver
+    ConnectToHiveMetastore, SetupDelta, SetupActivateScript
 )
 from simplespark.utils.ssh import SSHUtils
 
@@ -76,7 +76,7 @@ class StandaloneDriverBuilder(Builder):
     def _generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
-        tasks.append(SetupStandaloneDriver())
+        tasks.append(SetupDriver())
 
         tasks.extend(self._generate_optional_tasks())
         tasks.append(SetupActivateScript())
@@ -100,29 +100,46 @@ class StandaloneWorkerBuilder(Builder):
 
 def build_home(config: SimpleSparkConfig):
 
-    if not os.path.exists(config.simplespark_home):
-        print(f'Creating simplespark home directory {config.simplespark_home}')
-        os.makedirs(config.simplespark_home)
+    create_dirs = [
+        config.simplespark_home,
+        config.activate_script_directory,
+        config.simplespark_bin_directory,
+        config.simplespark_environment_directory,
+        config.simplespark_libs_directory
+    ]
 
-    if not os.path.exists(config.activate_script_directory):
-        print(f'Creating activate script directory {config.activate_script_directory}')
-        os.makedirs(config.activate_script_directory)
-
-    if not os.path.exists(config.simplespark_bin_directory):
-        print(f'Creating bin directory {config.simplespark_bin_directory}')
-        os.makedirs(config.simplespark_bin_directory)
-
-    if not os.path.isdir(config.simplespark_config_directory):
-        print(f'Creating simplespark config directory {config.simplespark_config_directory}')
-        os.makedirs(config.simplespark_config_directory)
-
-    if not os.path.isdir(config.simplespark_libs_directory):
-        print(f'Creating simplespark libs directory {config.simplespark_libs_directory}')
-        os.makedirs(config.simplespark_libs_directory)
+    for directory in create_dirs:
+        if not os.path.exists(directory):
+            print(f'Creating directory {directory}')
+            os.makedirs(directory)
 
     with open(config.bash_profile_file, 'a') as f:
         f.write(f"\nexport SIMPLESPARK_HOME={config.simplespark_home}")
-        f.write(f"\nexport PATH=$PATH:{config.simplespark_home}/activate")
+        f.write(f"\nexport PATH=$PATH:{config.activate_script_directory}")
+
+
+def build_environment(config: SimpleSparkConfig):
+
+    if config.mode == 'local':
+        builder = LocalBuilder(config, 'localhost')
+        builder.run()
+
+    elif config.mode == 'standalone':
+
+        print(f'Building driver: {config.driver.host}')
+        builder = StandaloneDriverBuilder(config, config.driver.host)
+        builder.run()
+
+        worker_hosts = [w.host for w in config.workers if w.host != config.driver.host]
+        print(f'Found {len(worker_hosts)} worker hosts')
+
+        for worker_host in worker_hosts:
+            print(f'Building worker over SSH: {worker_host}')
+            build_worker_via_ssh(config, worker_host)
+
+    else:
+
+        raise Exception(f'Unknown setup type: {config.mode}')
 
 
 def build_worker(config: SimpleSparkConfig, host: str):
@@ -159,27 +176,3 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     # Run build `worker` command on machine
     debug = ssh.run(f'{simplespark_binary_call} worker {config.name} {host}')
-
-
-def build_environment(config: SimpleSparkConfig):
-
-    if config.mode == 'local':
-        builder = LocalBuilder(config, 'localhost')
-        builder.run()
-
-    elif config.mode == 'standalone':
-
-        print(f'Building driver: {config.driver.host}')
-        builder = StandaloneDriverBuilder(config, config.driver.host)
-        builder.run()
-
-        worker_hosts = [w.host for w in config.workers if w.host != config.driver.host]
-        print(f'Found {len(worker_hosts)} worker hosts')
-
-        for worker_host in worker_hosts:
-            print(f'Building worker over SSH: {worker_host}')
-            build_worker_via_ssh(config, worker_host)
-
-    else:
-
-        raise Exception(f'Unknown setup type: {config.mode}')

@@ -23,7 +23,8 @@ class PackageConfig:
     def package_file_name(self) -> str:
 
         NAME_MAP = {
-            "java": f"OpenJDK11U-jdk_x64_linux_hotspot_{self.version.replace('+', '_')}.tar.gz",
+            "java": f"OpenJDK8U-jdk_x64_linux_hotspot_"
+                    f"{self.version.replace('+', '_').replace('-', '')}.tar.gz",
             "scala": f"scala-{self.version}.tgz",
             "spark": f"spark-{self.version}-bin-hadoop3.tgz"
         }
@@ -37,7 +38,7 @@ class PackageConfig:
     def package_releases_url(self) -> str:
 
         URL_MAP: dict[str, str] = {
-            "java": "https://github.com/adoptium/temurin11-binaries/releases/download",
+            "java": "https://github.com/adoptium/temurin8-binaries/releases/download",
             "scala": "https://downloads.lightbend.com/scala",
             "spark": "https://downloads.apache.org/spark",
             # "spark": f"https://archive.apache.org/dist/spark/",
@@ -53,7 +54,7 @@ class PackageConfig:
     def package_version_directory(self) -> str:
 
         DIRECTORY_MAP: dict[str, str] = {
-            "java": f"jdk-{self.version.replace('+', '%2B')}",
+            "java": f"jdk{self.version.replace('+', '%2B')}",
             "scala": self.version,
             "spark": f"spark-{self.version}",
         }
@@ -182,19 +183,19 @@ class SimpleSparkConfig:
 
     @property
     def activate_script_path(self) -> str:
-        return f"{self.activate_script_directory}/{self.name}.sh"
+        return f"{self.activate_script_directory}/{self.name}.env"
 
     @property
     def hive_config_path(self) -> str:
-        return f"{self.spark_home}/conf/hive-site.xml"
+        return f"{self.spark_conf_directory}/hive-site.xml"
 
     @property
     def simplespark_bin_directory(self) -> str:
-        return f"{self.simplespark_home}/config"
+        return f"{self.simplespark_home}/bin"
 
     @property
-    def simplespark_config_directory(self) -> str:
-        return f"{self.simplespark_home}/config"
+    def simplespark_environment_directory(self) -> str:
+        return f"{self.simplespark_home}/environments"
 
     @property
     def simplespark_libs_directory(self) -> str:
@@ -205,12 +206,16 @@ class SimpleSparkConfig:
         return self.get_package_home_directory('spark')
 
     @property
-    def spark_config_path(self) -> str:
-        return f"{self.spark_home}/conf/spark-defaults.conf"
+    def spark_conf_directory(self) -> str:
+        return f"{self.simplespark_environment_directory}/{self.name}/conf"
+
+    @property
+    def spark_conf_file_path(self) -> str:
+        return f"{self.spark_conf_directory}/spark-defaults.conf"
 
     @property
     def spark_env_sh_path(self) -> str:
-        return f"{self.spark_home}/conf/spark-env.sh"
+        return f"{self.spark_conf_directory}/spark-env.sh"
 
     @property
     def spark_jars_path(self) -> str:
