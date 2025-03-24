@@ -30,7 +30,11 @@ class SSHUtils:
         self.sftp.put(local_path, remote_path)
 
     def create_directory(self, path: str):
-        self.sftp.mkdir(path)
+        try:
+            self.sftp.mkdir(path)
+        # TODO add better exception handling
+        except:
+            pass
 
     def copy_directory(self, local_path: str, remote_path: str):
         for sub_path in self.sftp.listdir(local_path):
