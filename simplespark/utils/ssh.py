@@ -37,7 +37,7 @@ class SSHUtils:
             pass
 
     def copy_directory(self, local_path: str, remote_path: str):
-        for sub_path in self.sftp.listdir(local_path):
+        for sub_path in os.listdir(local_path):
             local_sub_path = os.path.join(local_path, sub_path)
             remote_sub_path = os.path.join(remote_path, sub_path)
             if os.path.isdir(local_sub_path):
