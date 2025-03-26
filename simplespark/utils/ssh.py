@@ -37,6 +37,10 @@ class SSHUtils:
             pass
 
     def copy_directory(self, local_path: str, remote_path: str):
+
+        if not self.exists(remote_path):
+            self.sftp.mkdir(remote_path)
+
         for sub_path in os.listdir(local_path):
             local_sub_path = os.path.join(local_path, sub_path)
             remote_sub_path = os.path.join(remote_path, sub_path)
@@ -46,6 +50,18 @@ class SSHUtils:
             else:
                 print(f'Copying {local_sub_path} to {remote_sub_path}')
                 self.copy(local_sub_path, remote_sub_path)
+
+    def exists(self, remote_path: str) -> bool:
+
+        path_parts = remote_path.split('/')
+        last_part = path_parts[-1]
+        root_folder = "/".join(remote_path.split('/')[:-1])
+        if remote_path.startswith('/'):
+            root_folder = "/" + root_folder
+
+        root_folder_contents = self.sftp.listdir(root_folder)
+
+        return last_part in root_folder_contents
 
     def run(self, command: str):
         stdin, stdout, stderr = self.ssh.exec_command(command)
