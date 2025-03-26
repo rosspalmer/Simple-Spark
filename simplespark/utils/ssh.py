@@ -56,8 +56,6 @@ class SSHUtils:
         path_parts = remote_path.split('/')
         last_part = path_parts[-1]
         root_folder = "/".join(path_parts[:-1])
-        if remote_path.startswith('/'):
-            root_folder = "/" + root_folder
 
         root_folder_contents = self.sftp.listdir(root_folder)
 
