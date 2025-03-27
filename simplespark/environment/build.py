@@ -188,4 +188,7 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
             print(f'Skipping, package {package.name}:{package.version} does not exist in libs folder')
 
     # Run build `worker` command on machine
-    debug = ssh.run(f'{simplespark_binary_call} worker {config.name} {host}')
+    stdin, stdout, stderr = ssh.run(f'{simplespark_binary_call} worker {config.name} {host}')
+
+    print(stdout.readlines())
+    print(stderr.readlines())
