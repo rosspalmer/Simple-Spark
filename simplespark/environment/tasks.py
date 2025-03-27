@@ -177,6 +177,11 @@ class SetupWorker(BuildTask):
 
         print('Setting up worker configuration')
 
+        print(f'Add activation file call to {config.bash_profile_file}')
+        with open(config.bash_profile_file, 'a') as bash_profile_file:
+            # TODO Overwrite instead of append
+            bash_profile_file.write(f'\nsource {config.activate_script_path}')
+
         with open(config.spark_env_sh_path, 'a') as env_sh_file:
 
             env_sh_file.write(f'export SPARK_WORKER_CORES={self.worker_config.cores}\n')
