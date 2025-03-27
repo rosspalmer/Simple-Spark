@@ -178,10 +178,14 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     # Copy over packages from driver to worker
     ssh.create_directory(config.simplespark_libs_directory)
     for package in config.packages:
-        ssh.create_directory(f"{config.simplespark_libs_directory}/{package.name}")
-        package_directory = config.get_package_home_directory(package.name)
-        print(f'Copying over {package} to {package_directory}')
-        ssh.copy_directory(package_directory, package_directory)
+        package_path = config.get_package_home_directory(package.name)
+        if os.path.exists(package_path):
+            ssh.create_directory(f"{config.simplespark_libs_directory}/{package.name}")
+            package_directory = config.get_package_home_directory(package.name)
+            print(f'Copying over {package} to {package_directory}')
+            ssh.copy_directory(package_directory, package_directory)
+        else:
+            print(f'Skipping, package {package.name}:{package.version} does not exist in libs folder')
 
     # Run build `worker` command on machine
     debug = ssh.run(f'{simplespark_binary_call} worker {config.name} {host}')

@@ -48,7 +48,7 @@ class SSHUtils:
                 print(f'Found directory: {local_sub_path}')
                 self.copy_directory(local_sub_path, remote_sub_path)
             else:
-                print(f'Copying {local_sub_path} to {remote_sub_path}')
+                # print(f'Copying {local_sub_path} to {remote_sub_path}')
                 self.copy(local_sub_path, remote_sub_path)
 
     def exists(self, remote_path: str) -> bool:
