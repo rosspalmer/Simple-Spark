@@ -154,10 +154,6 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     ssh = SSHUtils(host)
 
-    stdin, stdout, stderr = ssh.run('echo "HELLO WORLD"; ls')
-    print(stdout.readlines())
-    print(stderr.readlines())
-
     # Make SIMPLESPARK_HOME directory for copying over files
     ssh.create_directory(config.simplespark_home)
 
@@ -165,8 +161,12 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     # FIXME need to make link dynamic, not hardcoded
     ssh.create_directory(config.simplespark_bin_directory)
     binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/v0.2.3/simplespark_v0.2.3"
-    ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
     simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
+
+    print('wget command')
+    stdin, stdout, stderr = ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
+    print(stdout.readLines())
+    print(stderr.readLines())
 
     # Copy over config json from driver to worker
     environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
