@@ -63,7 +63,4 @@ class SSHUtils:
 
     def run(self, command: str, throw_exception: bool = True):
         stdin, stdout, stderr = self.ssh.exec_command(command)
-        error_lines = stderr.readlines()
-        if throw_exception and len(error_lines) > 0:
-            raise Exception(f"SSH run error: {error_lines[0].strip()}")
         return stdin, stdout, stderr
