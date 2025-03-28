@@ -75,7 +75,7 @@ def start():
 
     if config.mode == "local":
         os.system(start_worker_command)
-    elif config.mode == "remote":
+    elif config.mode == "standalone":
         for w in config.workers:
             ssh = SSHUtils(w.host)
             i,o,e = ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
