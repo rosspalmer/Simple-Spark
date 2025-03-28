@@ -159,15 +159,17 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     # Make binary directory and download simplespark binary
     # FIXME need to make link dynamic, not hardcoded
+    binary_name = f"simplespark_0.2.3"
     ssh.create_directory(config.simplespark_bin_directory)
-    binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/v0.2.3/simplespark_0.2.3"
-    simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
+    binary_download = f"https://github.com/rosspalmer/Simple-Spark/releases/download/v0.2.3/{binary_name}"
 
     print('wget command')
     # Make sure to set umask for executable permission
-    stdin, stdout, stderr = ssh.run(f"umask 022; wget -P {config.simplespark_bin_directory} {binary_download}")
-    print(stdout.readlines())
-    print(stderr.readlines())
+
+    ssh.run(f"wget {binary_download} -O {config.simplespark_bin_directory}/{binary_name}")
+    ssh.run(f"chmod +x {config.simplespark_bin_directory}/{binary_name}")
+
+    simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
 
     # Copy over config json from driver to worker
     environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
