@@ -221,6 +221,10 @@ class SimpleSparkConfig:
     def spark_jars_path(self) -> str:
         return f"{self.spark_home}/jars"
 
+    @property
+    def spark_master(self) -> str:
+        return f"spark://{self.driver.host}:7077"
+
     def get_package_config(self, package: str) -> PackageConfig:
         if not self.has_package(package):
             raise Exception(f"Package {package} does not defined in config")
