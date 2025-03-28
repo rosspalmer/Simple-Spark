@@ -7,6 +7,7 @@ from simplespark.environment.build import build_environment, build_worker, build
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.templates import Templates
 from simplespark.utils.shell import ShellManager
+from simplespark.utils.ssh import SSHUtils
 
 app = typer.Typer()
 
@@ -68,12 +69,16 @@ def start():
         raise Exception("Environment not activated, activate environment using `source <name>.env`")
     config = SimpleSparkConfig.get_simplespark_config(environment_name)
 
-    if config.mode == 'local':
-        os.system("bash $SPARK_HOME/sbin/start-master.sh")
-        os.system(f"bash $SPARK_HOME/sbin/start-worker.sh spark://localhost:7077")
+    os.system("bash $SPARK_HOME/sbin/start-master.sh")
 
-    else:
-        os.system("bash $SPARK_HOME/sbin/start-all.sh")
+    start_worker_command = f"bash $SPARK_HOME/sbin/start-worker.sh {config.spark_master}"
+
+    if config.mode == "local":
+        os.system(start_worker_command)
+    elif config.mode == "remote":
+        for w in config.workers:
+            ssh = SSHUtils(w.host)
+            ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
