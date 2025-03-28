@@ -78,7 +78,10 @@ def start():
     elif config.mode == "remote":
         for w in config.workers:
             ssh = SSHUtils(w.host)
-            ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
+            i,o,e = ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
+            print(w.host)
+            print(o.readlines())
+            print(e.readlines())
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
