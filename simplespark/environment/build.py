@@ -164,7 +164,8 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     simplespark_binary_call = f"{config.simplespark_bin_directory}/{binary_download.split('/')[-1]}"
 
     print('wget command')
-    stdin, stdout, stderr = ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
+    # Make sure to set umask for executable permission
+    stdin, stdout, stderr = ssh.run(f"umask 022; wget -P {config.simplespark_bin_directory} {binary_download}")
     print(stdout.readlines())
     print(stderr.readlines())
 
