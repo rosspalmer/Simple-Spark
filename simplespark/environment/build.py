@@ -165,8 +165,8 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
 
     print('wget command')
     stdin, stdout, stderr = ssh.run(f"wget -P {config.simplespark_bin_directory} {binary_download}")
-    print(stdout.readLines())
-    print(stderr.readLines())
+    print(stdout.readlines())
+    print(stderr.readlines())
 
     # Copy over config json from driver to worker
     environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
