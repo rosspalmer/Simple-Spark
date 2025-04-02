@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from simplespark.environment.config import SimpleSparkConfig
 from simplespark.environment.tasks import (
     BuildTask, SetupWorker, SetupDriver, SetupJavaBin, PrepareConfigFiles,
-    ConnectToHiveMetastore, SetupDelta, SetupActivateScript
+    ConnectToHiveMetastore, SetupDelta, SetupActivateScript, SetupDriverJars
 )
 from simplespark.utils.ssh import SSHUtils
 
@@ -60,7 +60,7 @@ class LocalBuilder(Builder):
 
         tasks = self._generate_core_tasks()
         tasks.append(SetupDriver())
-
+        tasks.append(SetupDriverJars())
         worker_config = self.config.get_worker_config(self.config.driver.host)
         assert worker_config is not None
         tasks.append(SetupWorker(worker_config))
@@ -77,7 +77,7 @@ class StandaloneDriverBuilder(Builder):
 
         tasks = self._generate_core_tasks()
         tasks.append(SetupDriver())
-
+        tasks.append(SetupDriverJars())
         tasks.extend(self._generate_optional_tasks())
         tasks.append(SetupActivateScript())
 
