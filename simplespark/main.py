@@ -79,9 +79,8 @@ def start():
         for w in config.workers:
             ssh = SSHUtils(w.host)
             i,o,e = ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
-            print(w.host)
-            print(o.readlines())
-            print(e.readlines())
+            for line in o.readlines():
+                print(line)
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
@@ -100,11 +99,16 @@ def stop():
         raise Exception("Environment not activated, activate environment using `source <name>.env`")
     config = SimpleSparkConfig.get_simplespark_config(environment_name)
 
+    os.system("bash $SPARK_HOME/sbin/stop-master.sh")
+
     if config.mode == 'local':
-        os.system("bash $SPARK_HOME/sbin/stop-master.sh")
         os.system("bash $SPARK_HOME/sbin/stop-worker.sh localhost")
     else:
-        os.system("bash $SPARK_HOME/sbin/stop-all.sh")
+        for w in config.workers:
+            ssh = SSHUtils(w.host)
+            i,o,e = ssh.run(f"source {config.activate_script_path}; $SPARK_HOME/sbin/stop-worker.sh")
+            for line in o.readlines():
+                print(line)
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/stop-connect-server.sh")
