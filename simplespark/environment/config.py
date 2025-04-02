@@ -79,6 +79,7 @@ class WorkerConfig:
 
 @dataclass
 class JdbcConfig:
+    config_name: str
     db_type: str
     db_host: str
     db_port: int
@@ -86,7 +87,7 @@ class JdbcConfig:
     db_pass: str
     jdbc_driver: str
 
-    def get_url(self) -> str:
+    def get_url(self, database = '') -> str:
 
         URL_PREFIXES = {
             "mssql": "sqlserver",
@@ -96,7 +97,7 @@ class JdbcConfig:
         }
         prefix = URL_PREFIXES[self.db_type]
 
-        return f"jdbc:{prefix}://{self.db_host}:{self.db_port}/metastore_db"
+        return f"jdbc:{prefix}://{self.db_host}:{self.db_port}/{database}"
 
 
 @dataclass

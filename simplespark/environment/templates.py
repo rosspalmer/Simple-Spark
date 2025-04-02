@@ -12,6 +12,7 @@ DEFAULT_PACKAGES = [
 
 
 DEFAULT_JDBC = {
+    "mysql": ["com.mysql", "mysql-connector-j", "com.mysql.cj.jdbc.Driver"],
     "postgres": ["org.postgresql", "postgresql", "42.7.4", "org.postgresql.Driver"]
 }
 
