@@ -134,7 +134,7 @@ class SetupDriver(BuildTask):
                 local_master_url = f"spark://{socket.gethostname()}:7077"
             else:
                 local_master_url = f"spark://{config.driver.host}:7077"
-            spark_config_file.write(f"spark.master={local_master_url}\n")
+            spark_config_file.write(f"spark.master {local_master_url}\n")
 
             if config.driver and config.driver.cores:
                 spark_config_file.write(f"spark.driver.cores {config.driver.cores}\n")
@@ -152,6 +152,9 @@ class SetupDriver(BuildTask):
             if config.warehouse_path:
                 spark_config_file.write(f"spark.sql.warehouse.dir {config.warehouse_path}\n")
 
+            if config.metastore_config:
+                spark_config_file.write(f"spark.sql.catalogImplementation hive")
+
             # Add `conf/workers` file if running in standalone mode
             if config.mode == 'standalone':
 
@@ -163,6 +166,15 @@ class SetupDriver(BuildTask):
                     for w in config.workers:
                         print(f'Adding worker: {w.host}')
                         wf.write(w.host + '\n')
+
+        with open(config.spark_env_sh_path, 'a') as spark_env_sh_file:
+            spark_env_sh_file.write(f"export SPARK_MASTER_HOST={config.spark_master}")
+
+            worker_on_driver = config.get_worker_config(config.driver.host)
+            if worker_on_driver:
+                spark_env_sh_file.write(f'export SPARK_WORKER_CORES={worker_on_driver.cores}\n')
+                spark_env_sh_file.write(f'export SPARK_WORKER_MEMORY={worker_on_driver.memory}\n')
+                spark_env_sh_file.write(f'export SPARK_WORKER_INSTANCES={worker_on_driver.instances}\n')
 
 
 class SetupWorker(BuildTask):
