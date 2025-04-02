@@ -152,7 +152,7 @@ class SimpleSparkConfig:
             'packages': lambda c: [PackageConfig(**p) for p in c['packages']],
             'workers': lambda c: [WorkerConfig(**w) for w in c['workers']],
             'metastore_config': lambda c: JdbcConfig(**c['metastore_config']),
-            'jbc_drivers': lambda c: {k: MavenConfig(**v) for k, v in c['jdbc_drivers'].items()}
+            'jdbc_drivers': lambda c: {k: MavenConfig(**v) for k, v in c['jdbc_drivers'].items()}
         }
 
         return deserializers
