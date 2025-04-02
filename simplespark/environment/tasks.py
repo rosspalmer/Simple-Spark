@@ -214,7 +214,7 @@ class ConnectToHiveMetastore(BuildTask):
         xml = f"""<configuration>
         <property>
             <name>javax.jdo.option.ConnectionURL</name>
-            <value>{jdbc_config.get_url()}</value>
+            <value>{jdbc_config.get_url('metastore_db')}</value>
         </property>
         <property>
             <name>javax.jdo.option.ConnectionDriverName</name>

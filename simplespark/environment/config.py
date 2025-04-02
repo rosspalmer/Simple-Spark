@@ -89,13 +89,11 @@ class JdbcConfig:
 
     def get_url(self, database = '') -> str:
 
-        URL_PREFIXES = {
+        URL_PREFIX_RENAMES = {
             "mssql": "sqlserver",
-            "mysql": "mysql",
-            "oracle": "oracle",
             "postgres": "postgresql"
         }
-        prefix = URL_PREFIXES[self.db_type]
+        prefix = URL_PREFIX_RENAMES[self.db_type] if self.db_type in URL_PREFIX_RENAMES else self.db_type
 
         return f"jdbc:{prefix}://{self.db_host}:{self.db_port}/{database}"
 
