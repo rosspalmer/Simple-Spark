@@ -17,7 +17,7 @@ class Builder(ABC):
 
     def run(self):
 
-        tasks = self._generate_build_tasks()
+        tasks = self.generate_build_tasks()
 
         for task in tasks:
             print(f'Starting build task: {task.name()}')
@@ -25,7 +25,7 @@ class Builder(ABC):
 
 
     @abstractmethod
-    def _generate_build_tasks(self) -> list[BuildTask]:
+    def generate_build_tasks(self) -> list[BuildTask]:
         pass
 
     def _generate_core_tasks(self) -> list[BuildTask]:
@@ -42,9 +42,6 @@ class Builder(ABC):
         tasks = list()
 
         # FIXME do we need to install this on workers?
-        if self.config.jdbc_drivers:
-            tasks.append(None)  # TODO
-        # FIXME do we need to install this on workers?
         if self.config.metastore_config:
             tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
@@ -56,7 +53,7 @@ class Builder(ABC):
 
 class LocalBuilder(Builder):
 
-    def _generate_build_tasks(self) -> list[BuildTask]:
+    def generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
         tasks.append(SetupDriver())
@@ -73,7 +70,7 @@ class LocalBuilder(Builder):
 
 class StandaloneDriverBuilder(Builder):
 
-    def _generate_build_tasks(self) -> list[BuildTask]:
+    def generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
         tasks.append(SetupDriver())
@@ -86,7 +83,7 @@ class StandaloneDriverBuilder(Builder):
 
 class StandaloneWorkerBuilder(Builder):
 
-    def _generate_build_tasks(self) -> list[BuildTask]:
+    def generate_build_tasks(self) -> list[BuildTask]:
 
         tasks = self._generate_core_tasks()
 
