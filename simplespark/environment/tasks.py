@@ -154,6 +154,10 @@ class SetupDriver(BuildTask):
 
             if config.metastore_config:
                 spark_config_file.write(f"spark.sql.catalogImplementation hive\n")
+                spark_config_file.write(f"javax.jdo.option.ConnectionURL {config.metastore_config.get_url('metastore_db')}\n")
+                spark_config_file.write(f"javax.jdo.option.ConnectionUserName {config.metastore_config.db_user}")
+                spark_config_file.write(f"javax.jdo.option.ConnectionPassword {config.metastore_config.db_pass}")
+                spark_config_file.write(f"javax.jdo.option.ConnectionDriverName {config.metastore_config.jdbc_driver}")
 
             # Add `conf/workers` file if running in standalone mode
             # if config.mode == 'standalone':
