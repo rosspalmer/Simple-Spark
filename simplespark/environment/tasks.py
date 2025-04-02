@@ -147,28 +147,28 @@ class SetupDriver(BuildTask):
 
             if config.derby_path:
                 spark_config_file.write("spark.driver.extraJavaOptions "
-                                        f"-Dderby.system.home={config.derby_path}")
+                                        f"-Dderby.system.home={config.derby_path}\n")
 
             if config.warehouse_path:
                 spark_config_file.write(f"spark.sql.warehouse.dir {config.warehouse_path}\n")
 
             if config.metastore_config:
-                spark_config_file.write(f"spark.sql.catalogImplementation hive")
+                spark_config_file.write(f"spark.sql.catalogImplementation hive\n")
 
             # Add `conf/workers` file if running in standalone mode
-            if config.mode == 'standalone':
-
-                workers_file_path = f'{config.spark_conf_directory}/workers'
-
-                with open(workers_file_path, "w") as wf:
-                    print(f'Creating {workers_file_path} file')
-
-                    for w in config.workers:
-                        print(f'Adding worker: {w.host}')
-                        wf.write(w.host + '\n')
+            # if config.mode == 'standalone':
+            #
+            #     workers_file_path = f'{config.spark_conf_directory}/workers'
+            #
+            #     with open(workers_file_path, "w") as wf:
+            #         print(f'Creating {workers_file_path} file')
+            #
+            #         for w in config.workers:
+            #             print(f'Adding worker: {w.host}')
+            #             wf.write(w.host + '\n')
 
         with open(config.spark_env_sh_path, 'a') as spark_env_sh_file:
-            spark_env_sh_file.write(f"export SPARK_MASTER_HOST={config.spark_master}")
+            spark_env_sh_file.write(f"export SPARK_MASTER_HOST={config.driver.host}\n")
 
             worker_on_driver = config.get_worker_config(config.driver.host)
             if worker_on_driver:
