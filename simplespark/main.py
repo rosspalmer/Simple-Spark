@@ -36,7 +36,7 @@ def build(config_paths: str):
     print('Setup simplespark environment')
     build_environment(config)
 
-    print(f"Run `source {config.name}.env` to activate environment")
+    print(f"Run `source {config.name}.spark` to activate environment")
     print(f"Note: May need to run `source {config.bash_profile_file}` first to update environment variables")
 
 
