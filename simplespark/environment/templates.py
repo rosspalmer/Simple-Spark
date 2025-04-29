@@ -11,10 +11,10 @@ DEFAULT_PACKAGES = [
 ]
 
 
-DEFAULT_JDBC = {
-    "mysql": ["com.mysql", "mysql-connector-j", "9.2.0", "com.mysql.cj.jdbc.Driver"],
-    "postgres": ["org.postgresql", "postgresql", "42.7.4", "org.postgresql.Driver"]
-}
+DEFAULT_JDBC_CONNECTORS = [
+    MavenConfig("com.mysql", "mysql-connector-j", "9.2.0", "com.mysql.cj.jdbc.Driver", "mysql"),
+    MavenConfig("org.postgresql", "postgresql", "42.7.4", "org.postgresql.Driver", "postgres")
+]
 
 
 class Templates:

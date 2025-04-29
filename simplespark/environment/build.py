@@ -89,7 +89,6 @@ class StandaloneWorkerBuilder(Builder):
 
         worker_config = self.config.get_worker_config(self.host)
         tasks.append(SetupWorker(worker_config))
-
         tasks.append(SetupActivateScript())
 
         return tasks

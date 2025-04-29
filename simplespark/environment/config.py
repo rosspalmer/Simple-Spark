@@ -78,31 +78,25 @@ class WorkerConfig:
 
 
 @dataclass
-class JdbcConfig:
-    config_name: str
-    db_type: str
-    db_host: str
-    db_port: int
-    db_user: str
-    db_pass: str
-    jdbc_driver: str
-
-    def get_url(self, database = '') -> str:
-
-        URL_PREFIX_RENAMES = {
-            "mssql": "sqlserver",
-            "postgres": "postgresql"
-        }
-        prefix = URL_PREFIX_RENAMES[self.db_type] if self.db_type in URL_PREFIX_RENAMES else self.db_type
-
-        return f"jdbc:{prefix}://{self.db_host}:{self.db_port}/{database}"
-
-
-@dataclass
 class MavenConfig:
     group_id: str
     artifact_id: str
     version: str
+    driver: str = ""
+    jdbc_prefix: str = ""
+
+
+@dataclass
+class JdbcConfig:
+    config_name: str
+    db_connector: MavenConfig
+    db_host: str
+    db_port: int
+    db_user: str
+    db_pass: str
+
+    def get_url(self, database = '') -> str:
+        return f"jdbc:{self.db_connector.jdbc_prefix}://{self.db_host}:{self.db_port}/{database}"
 
 
 @dataclass
