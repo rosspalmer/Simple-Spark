@@ -34,19 +34,19 @@ Open source data platform for managing Apache Spark resources and job orchestrat
 - Job orchestrator: Job scheduler via cron _(in development)_
 - History server: SparkUI for past runs _(in development)_
 
-## Quick Start Guide
+# Quick Start Guide
 
 Once installed, the `simplespark` command can be used to
 create and switch between different Spark environments. 
 Each environment contains a single cluster and a collection
 of resources to run on the cluster.
 
-### Install `simplespark`
+## Install `simplespark`
 
 The `simplespark` library is written in Python and can be
 installed in two different ways:
 
-#### A: Python Library
+### A: Python Library
 
 For machines with Python already installed, use `pip` to install
 both the Python module and the CLI tool.
@@ -55,7 +55,7 @@ both the Python module and the CLI tool.
 pip install simplespark
 ```
 
-#### B: Binary Executable
+### B: Binary Executable
 
 For machines without Python (workers for example), you can 
 install the CLI as a binary executable.
@@ -65,7 +65,7 @@ wget TODO
 echo "export PATH=$PATH:/<bin-folder>" >> ~/.bashrc
 ```
 
-### Create Configuration
+## Create Configuration
 
 The configuration can be expressed in a single JSON file or
 be defined in multiple files which are merged on import.
@@ -74,7 +74,7 @@ Each `mode` will require different configuration proprieties
 to be defined and within each mode there are optional settings
 for specific add ins.
 
-#### Templates
+### Templates
 
 The easiest way to start is to create a template for the 
 specific mode by running the command below:
@@ -83,7 +83,7 @@ specific mode by running the command below:
 simplespark template <mode> <file-path>
 ```
 
-#### Required Properties
+### Required Properties
 
 For all configurations, the following proprieties must be defined.
 
@@ -96,11 +96,11 @@ For all configurations, the following proprieties must be defined.
 - `packages`: TODO
 - `driver`: TODO
 
-### Import Configuration
+## Import Configuration
 
 TODO
 
-### Activate Environment
+## Activate Environment
 
 Activating a specific environment sets the `JAVA/SCALA/SPARK_HOME` variables
 for a shell session to point to that environment, as well as any other 
@@ -121,7 +121,7 @@ to the activated environment:
 - `pyspark`
 - `spark-sql`
 
-### Start/Stop Clusters
+## Start/Stop Clusters
 
 A cluster can be started / stopped by running the command below.
 Once started, a cluster will stay up until stopped, even if a 
