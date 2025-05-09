@@ -1,22 +1,14 @@
 # Simple-Spark
 
-Open source data platform for managing Apache Spark resources and job orchestration.
+Open source toolset for managing Apache Spark resources and job orchestration.
+
+- CLI tool for managing Spark clusters and related resources 
+- Python package for integrating setup into job code
+- All resources managed with single configuration file
+- Local development environment mirroring production environment
+- Required libraries all stored in single location
 
 **NOTE: Still working on initial release**
-
-## Project Goals
-
-1. Provide a single CLI tool to perform all functions:
-    - Orchestrate Spark clusters
-    - Manage metastore / data warehouse
-    - Run jobs and keep history
-    - Setup notebook server with access to data warehouse
-2. Compile all required configurations in single JSON/YAML file
-3. Improve Spark job development:
-    - Use same toolset to run jobs locally as on a cluster
-    - Keep all resources in central directory for transparency and customization
-    - Provide `SimpleSpark` object for easy access to easy access to all resources in codebase
-    - Connect to remote resources through single API
 
 ## Features
 
@@ -24,15 +16,16 @@ Open source data platform for managing Apache Spark resources and job orchestrat
 
 - `local`: Single node cluster setup on local machine
 - `standalone`: Multi node cluster using Spark's [standalone setup](https://spark.apache.org/docs/latest/spark-standalone.html)
-- `yarn`: Multi node cluster built using [Hadoop YARN setup](https://spark.apache.org/docs/latest/running-on-yarn.html) _(in development)_
-- `kubernetes`: Multi node cluster built [Kubernetes setup](https://spark.apache.org/docs/latest/running-on-kubernetes.html) (In development)
+- `yarn`: Multi node cluster built using [Hadoop YARN setup](https://spark.apache.org/docs/latest/running-on-yarn.html) _(future release)_
+- `kubernetes`: Multi node cluster built [Kubernetes setup](https://spark.apache.org/docs/latest/running-on-kubernetes.html) _(future release)_
 
 **Services**
 
 - Cluster manager: Start/stop clusters, Spark UI for cluster
-- Metastore: Central SQL server managing HIVE metastore _(in development)_
-- Job orchestrator: Job scheduler via cron _(in development)_
-- History server: SparkUI for past runs _(in development)_
+- JDBC access server: Integrated HIVE Thriftserver for JDBC calls to Spark warehouse 
+- Metastore: Central SQL server managing HIVE metastore _(future release)_
+- Job orchestrator: Job scheduler via cron _(future release)_
+- History server: SparkUI for past runs _(future release)_
 
 # Quick Start Guide
 
@@ -41,7 +34,7 @@ create and switch between different Spark environments.
 Each environment contains a single cluster and a collection
 of resources to run on the cluster.
 
-## Install `simplespark`
+## I. Install `simplespark`
 
 The `simplespark` library is written in Python and can be
 installed in two different ways:
@@ -55,17 +48,11 @@ both the Python module and the CLI tool.
 pip install simplespark
 ```
 
-### B: Binary Executable
+### B: Source Code (Poetry Install)
 
-For machines without Python (workers for example), you can 
-install the CLI as a binary executable.
+TODO
 
-```bash
-wget TODO
-echo "export PATH=$PATH:/<bin-folder>" >> ~/.bashrc
-```
-
-## Create Configuration
+## II. Create Configuration
 
 The configuration can be expressed in a single JSON file or
 be defined in multiple files which are merged on import.
@@ -83,32 +70,17 @@ specific mode by running the command below:
 simplespark template <mode> <file-path>
 ```
 
-### Required Properties
+## II. Build Environment
 
-For all configurations, the following proprieties must be defined.
-
-- `name`: Identifier of simplespark "environment"
-- `simplespark_home`: Full path to directory used by simplespark to:
-  - Store environment configurations
-  - Store any required libraries
-  - Store any scripts or custom modifications
-- `bash_profile_file`: Full path to bash profile file used to set `SIMPLESPARK_HOME` environment variable
-- `packages`: TODO
-- `driver`: TODO
-
-## Import Configuration
-
-TODO
-
-## Activate Environment
+## IV. Activate Environment
 
 Activating a specific environment sets the `JAVA/SCALA/SPARK_HOME` variables
-for a shell session to point to that environment, as well as any other 
-required setup.
+for a shell session to point to that environment, as well as any other shell
+updates required for specific build.
 
-This is done by calling an "activation" script generated in the import step:
+This is done by calling an "activation" script generated during build:
 
-`source <environment-name>.sh`
+`source <environment-name>.spark`
 
 The environment will only be activated for the session in which this command
 called so that it is possible to interact with multiple environments at once.
@@ -121,13 +93,31 @@ to the activated environment:
 - `pyspark`
 - `spark-sql`
 
-## Start/Stop Clusters
+## V. Start/Stop Environment
 
-A cluster can be started / stopped by running the command below.
-Once started, a cluster will stay up until stopped, even if a 
-user switches to another environment.
+An environment can be started and stopped which will spin up 
+or down the associated cluster and any additional resources 
+defined in the configuration.
 
 ```bash
-simplespark start <environment-name>
-simplespark stop <environment-name>
+# Not required if already in desired environment
+source <environment-name>.spark
+
+simplespark start
+simplespark stop
 ```
+
+# Configuration
+
+### Required Properties
+
+For all configurations, the following proprieties must be defined.
+
+- `name`: Identifier of simplespark "environment"
+- `simplespark_home`: Full path to directory used by simplespark to:
+  - Store environment configurations
+  - Store any required libraries
+  - Store any scripts or custom modifications
+- `bash_profile_file`: Full path to bash profile file used to set `SIMPLESPARK_HOME` environment variable
+- `packages`: TODO
+- `driver`: TODO
