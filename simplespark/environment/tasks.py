@@ -269,8 +269,9 @@ class SetupDriverJars(BuildTask):
     def run(self, config: SimpleSparkConfig):
 
         packages = []
-        for jdbc_maven in config.jdbc_drivers.values():
-            packages.append(f"{jdbc_maven.group_id}:{jdbc_maven.artifact_id}:{jdbc_maven.version}")
+        if config.jdbc_drivers:
+            for jdbc_maven in config.jdbc_drivers.values():
+                packages.append(f"{jdbc_maven.group_id}:{jdbc_maven.artifact_id}:{jdbc_maven.version}")
 
         if len(packages) > 0:
             with open(config.spark_conf_file_path, 'a') as f:
