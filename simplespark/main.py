@@ -78,7 +78,8 @@ def start():
     elif config.mode == "standalone":
         for w in config.workers:
             ssh = SSHUtils(w.host)
-            i,o,e = ssh.run(f"source {config.activate_script_path}; {start_worker_command}")
+            i,o,e = ssh.run(f". {config.bash_profile_file}; source {config.activate_script_path}; "
+                            f"{start_worker_command}")
             for line in o.readlines():
                 print(line)
 
@@ -106,7 +107,9 @@ def stop():
     else:
         for w in config.workers:
             ssh = SSHUtils(w.host)
-            i,o,e = ssh.run(f"source {config.activate_script_path}; $SPARK_HOME/sbin/stop-worker.sh")
+            i,o,e = ssh.run(f". {config.bash_profile_file}; "
+                            f"source {config.activate_script_path}; "
+                            f"$SPARK_HOME/sbin/stop-worker.sh")
             for line in o.readlines():
                 print(line)
 
