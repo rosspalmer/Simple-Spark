@@ -176,7 +176,7 @@ class SimpleSparkConfig:
 
     @property
     def activate_script_path(self) -> str:
-        return f"{self.activate_script_directory}/{self.name}.env"
+        return f"{self.activate_script_directory}/{self.name}.spark"
 
     @property
     def hive_config_path(self) -> str:
