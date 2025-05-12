@@ -84,6 +84,8 @@ def start():
                             f"{start_worker_command}")
             for line in o.readlines():
                 print(line)
+            for line in e.readlines():
+                print(line)
 
     if config.driver.connect_server:
         os.system("bash $SPARK_HOME/sbin/start-connect-server.sh")
