@@ -171,8 +171,7 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     environment_directory = f"{config.simplespark_environment_directory}/{config.name}"
     ssh.create_directory(config.simplespark_environment_directory)
     ssh.create_directory(environment_directory)
-    config_file_path = f'{environment_directory}/{config.name}.json'
-    ssh.copy(config_file_path, config_file_path)
+    ssh.copy(config.simplespark_config_file_path, config.simplespark_config_file_path)
 
     # Copy over packages from driver to worker
     ssh.create_directory(config.simplespark_libs_directory)
