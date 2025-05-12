@@ -82,6 +82,10 @@ class PrepareConfigFiles(BuildTask):
             print(f"Creating environment directory: {environment_directory}")
             os.mkdir(environment_directory)
 
+        if not os.path.exists(config.spark_conf_directory):
+            print(f"Creating environment directory: {config.spark_conf_directory}")
+            os.mkdir(config.spark_conf_directory)
+
         print(f"Setup spark-env.sh bash script at {config.spark_env_sh_path}")
         with open(config.spark_env_sh_path, 'w') as env_sh_file:
 
