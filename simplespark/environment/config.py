@@ -188,7 +188,7 @@ class SimpleSparkConfig:
 
     @property
     def simplespark_config_file_path(self) -> str:
-        return f"{config.simplespark_environment_directory}/{config.name}/{config.name}.json"
+        return f"{self.simplespark_environment_directory}/{self.name}/config.json"
 
     @property
     def simplespark_environment_directory(self) -> str:
