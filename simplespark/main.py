@@ -69,6 +69,7 @@ def start():
         raise Exception("Environment not activated, activate environment using `source <name>.env`")
     config = SimpleSparkConfig.get_simplespark_config(environment_name)
 
+    print(f"Starting master at {config.spark_master}")
     os.system("bash $SPARK_HOME/sbin/start-master.sh")
 
     start_worker_command = f"bash $SPARK_HOME/sbin/start-worker.sh {config.spark_master}"
@@ -77,6 +78,7 @@ def start():
         os.system(start_worker_command)
     elif config.mode == "standalone":
         for w in config.workers:
+            print(f'Starting worker {w.host}')
             ssh = SSHUtils(w.host)
             i,o,e = ssh.run(f". {config.bash_profile_file}; source {config.activate_script_path}; "
                             f"{start_worker_command}")
