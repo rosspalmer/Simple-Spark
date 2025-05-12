@@ -30,8 +30,8 @@ def build(config_paths: str):
         print(f"Creating environment conf directory: {config.spark_conf_directory}")
         os.mkdir(config.spark_conf_directory)
 
-    simplespark_config_path = f"{config.simplespark_environment_directory}/{config.name}/{config.name}.json"
-    config.write(simplespark_config_path)
+    # simplespark_config_path = f"{config.simplespark_environment_directory}/{config.name}/{config.name}.json"
+    config.write()
 
     print('Setup simplespark environment')
     build_environment(config)

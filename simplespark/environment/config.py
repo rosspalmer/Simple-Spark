@@ -187,6 +187,10 @@ class SimpleSparkConfig:
         return f"{self.simplespark_home}/bin"
 
     @property
+    def simplespark_config_file_path(self) -> str:
+        return f"{config.simplespark_environment_directory}/{config.name}/{config.name}.json"
+
+    @property
     def simplespark_environment_directory(self) -> str:
         return f"{self.simplespark_home}/environments"
 
@@ -256,7 +260,10 @@ class SimpleSparkConfig:
 
         return config_json
 
-    def write(self, json_path: str):
+    def write(self, json_path: str = ''):
+
+        if json_path == '':
+            json_path = self.simplespark_config_file_path
 
         as_string = str(self)
 
