@@ -174,16 +174,16 @@ def build_worker_via_ssh(config: SimpleSparkConfig, host: str):
     ssh.copy(config.simplespark_config_file_path, config.simplespark_config_file_path)
 
     # Copy over packages from driver to worker
-    ssh.create_directory(config.simplespark_libs_directory)
-    for package in config.packages:
-        package_path = config.get_package_home_directory(package.name)
-        if os.path.exists(package_path):
-            ssh.create_directory(f"{config.simplespark_libs_directory}/{package.name}")
-            package_directory = config.get_package_home_directory(package.name)
-            print(f'Copying over {package} to {package_directory}')
-            ssh.copy_directory(package_directory, package_directory)
-        else:
-            print(f'Skipping, package {package.name}:{package.version} does not exist in libs folder')
+    # ssh.create_directory(config.simplespark_libs_directory)
+    # for package in config.packages:
+    #     package_path = config.get_package_home_directory(package.name)
+    #     if os.path.exists(package_path):
+    #         ssh.create_directory(f"{config.simplespark_libs_directory}/{package.name}")
+    #         package_directory = config.get_package_home_directory(package.name)
+    #         print(f'Copying over {package} to {package_directory}')
+    #         ssh.copy_directory(package_directory, package_directory)
+    #     else:
+    #         print(f'Skipping, package {package.name}:{package.version} does not exist in libs folder')
 
     # Run build `worker` command on machine
     stdin, stdout, stderr = ssh.run(f'. {config.bash_profile_file}; '
