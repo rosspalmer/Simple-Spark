@@ -41,6 +41,10 @@ class Builder(ABC):
 
         tasks = list()
 
+        print("PACKAGES")
+        for package in self.config.packages:
+            print(package)
+
         # FIXME do we need to install this on workers?
         if self.config.metastore_config:
             tasks.append(ConnectToHiveMetastore())
