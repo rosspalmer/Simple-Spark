@@ -46,6 +46,7 @@ class Builder(ABC):
             tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
         if "delta" in self.config.packages:
+            print("FOUND DELTA")
             tasks.append(SetupDelta())
 
         return tasks
