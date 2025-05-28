@@ -41,15 +41,13 @@ class Builder(ABC):
 
         tasks = list()
 
-        print("PACKAGES")
-        for package in self.config.packages:
-            print(package)
+        package_names = [p.name for p in self.config.packages]
 
         # FIXME do we need to install this on workers?
         if self.config.metastore_config:
             tasks.append(ConnectToHiveMetastore())
         # FIXME do we need to install this on workers?
-        if "delta" in self.config.packages:
+        if "delta" in package_names:
             print("FOUND DELTA")
             tasks.append(SetupDelta())
 
