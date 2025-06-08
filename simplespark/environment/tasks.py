@@ -140,14 +140,14 @@ class SetupDriver(BuildTask):
                 local_master_url = f"spark://{config.driver.host}:7077"
             spark_config_file.write(f"spark.master {local_master_url}\n")
 
-            if config.driver and config.driver.cores:
+            if config.driver.cores:
                 spark_config_file.write(f"spark.driver.cores {config.driver.cores}\n")
 
-            if config.driver and config.driver.memory:
-                spark_config_file.write(f"spark.driver.memory {config.driver.memory}\n")
+            if config.driver.driver_memory:
+                spark_config_file.write(f"spark.driver.memory {config.driver.driver_memory}\n")
 
-            if config.executor_memory:
-                spark_config_file.write(f"spark.executor.memory {config.executor_memory}\n")
+            if config.driver.executor_memory:
+                spark_config_file.write(f"spark.executor.memory {config.driver.executor_memory}\n")
 
             if config.derby_path:
                 spark_config_file.write("spark.driver.extraJavaOptions "

@@ -8,7 +8,8 @@ from typing import Any, Dict, List
 class DriverConfig:
     host: str
     cores: int = None
-    memory: str = None
+    driver_memory: str = None
+    executor_memory: str = None
     connect_server: bool = False
     # history_server: bool = False
     thrift_server: bool = False
@@ -111,7 +112,6 @@ class SimpleSparkConfig:
     warehouse_path: str = None
     metastore_config: JdbcConfig = None
     workers: List[WorkerConfig] = None
-    executor_memory: str = None
     jdbc_drivers: Dict[str, MavenConfig] = None
 
     def __post_init__(self):
